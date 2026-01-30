@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Disease Outbreak Prediction</title>
+
+<link rel="stylesheet" href="css/layout.css">
+
+<style>
+input, select {
+  width: 60%;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 18px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #145a9e;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+#autoInfo {
+  padding: 15px;
+  margin-bottom: 20px;
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  Infectious Disease Outbreak Predictor
+</div>
+
+<div class="wrapper">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="map.html">Tamil Nadu Map</a>
+      <a href="prediction.html">Prediction</a>
+      <a href="visualizations.html">Visualizations</a>
+      <a href="report.html">Reports</a>
+      <a href="index.html">Logout</a>
+  </div>
+
+  <div class="content">
+      <h2>Disease Outbreak Prediction</h2>
+
+      <!-- Auto-Filled Climate Info -->
+      <div id="autoInfo"></div>
+
+      <label>District</label><br>
+      <select id="district"></select><br>
+
+      <label>Temperature</label><br>
+      <input id="temperature" placeholder="Temperature"><br>
+
+      <label>Humidity</label><br>
+      <input id="humidity" placeholder="Humidity"><br>
+
+      <label>Rainfall</label><br>
+      <input id="rainfall" placeholder="Rainfall"><br>
+
+      <label>NDVI</label><br>
+      <input id="ndvi" placeholder="NDVI"><br>
+
+      <label>Water Index</label><br>
+      <input id="water_index" placeholder="Water Index"><br><br>
+
+      <button onclick="predict()">Predict</button>
+
+      <h3 id="result"></h3>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 Infectious Disease Predictor – All rights reserved
+</div>
+
+<script>
+// ----------------------------------
+// FILL DISTRICT DROPDOWN (ALL 38)
+// ----------------------------------
+const districtList = [
+"Ariyalur","Chengalpattu","Chennai","Coimbatore","Cuddalore","Dharmapuri",
+"Dindigul","Erode","Kallakurichi","Kancheepuram","Kanyakumari","Karur",
+"Krishnagiri","Madurai","Nagapattinam","Namakkal","Nilgiris","Perambalur",
+"Pudukkottai","Ramanathapuram","Ranipet","Salem","Sivagangai","Tenkasi",
+"Thanjavur","Theni","Thoothukudi","Tiruchirappalli","Tirunelveli",
+"Tirupathur","Tiruppur","Tiruvallur","Tiruvannamalai","Tiruvarur",
+"Vellore","Viluppuram","Virudhunagar"
+];
+
+let districtSelect = document.getElementById("district");
+districtList.forEach(d => {
+  districtSelect.innerHTML += `<option value="${d}">${d}</option>`;
+});
+
+// ----------------------------------
+// AUTO-FILL FROM MAP URL
+// ----------------------------------
+window.onload = function() {
+    const params = new URLSearchParams(window.location.search);
+
+    const district = params.get("district");
+    const temp = params.get("temp");
+    const hum = params.get("hum");
+    const rain = params.get("rain");
+    const risk = params.get("risk");
+
+    if (district) {
+        document.getElementById("district").value = district;
+        document.getElementById("temperature").value = temp;
+        document.getElementById("humidity").value = hum;
+        document.getElementById("rainfall").value = rain;
+        document.getElementById("ndvi").value = 0.5;
+        document.getElementById("water_index").value = 0.5;
+
+        document.getElementById("autoInfo").innerHTML = `
+            <h3>Climate Conditions for <b>${district}</b></h3>
+            Temperature: ${temp}<br>
+            Humidity: ${hum}<br>
+            Rainfall: ${rain}<br>
+            Current Risk (from Map): <b>${risk}</b><br>
+            <hr>
+        `;
+    }
+};
+
+// ----------------------------------
+// PREDICT USING BACKEND
+// ----------------------------------
+function predict() {
+
+  let payload = {
+    temperature: parseFloat(document.getElementById("temperature").value),
+    humidity: parseFloat(document.getElementById("humidity").value),
+    rainfall: parseFloat(document.getElementById("rainfall").value),
+    ndvi: parseFloat(document.getElementById("ndvi").value),
+    water_index: parseFloat(document.getElementById("water_index").value)
+  };
+
+  fetch("http://127.0.0.1:5000/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+      document.getElementById("result").innerHTML =
+        `Predicted Outbreak Risk: <b>${data.risk}</b>`;
+  })
+  .catch(err => {
+    console.log(err);
+    alert("Backend API error");
+  });
+}
+</script>
+
+</body>
+</html>

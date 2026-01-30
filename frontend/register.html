@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+
+<link rel="stylesheet" href="css/layout.css">
+<style>
+.card {
+  width: 350px;
+  margin: 60px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #aaa;
+  text-align: center;
+}
+
+input {
+  width: 90%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+button {
+  width: 95%;
+  padding: 12px;
+  background: #1976d2;
+  border: none;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+}
+
+button:hover {
+  background: #0d57a3;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Create Account</h2>
+
+  <input id="name" type="text" placeholder="Name">
+  <input id="email" type="text" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="registerUser()">Register</button>
+
+  <p>Already have an account? <a href="index.html">Login</a></p>
+</div>
+
+<script>
+function registerUser() {
+
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+
+    fetch("http://127.0.0.1:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert("Registration Successful!");
+            window.location.href = "index.html";
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+}
+</script>
+
+</body>
+</html>

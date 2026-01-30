@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+
+<link rel="stylesheet" href="css/layout.css">
+
+<style>
+/* Extra styling JUST for dashboard cards */
+.card-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: white;
+    width: 220px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #aaa;
+    text-align: center;
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.card p {
+    font-size: 16px;
+    margin-top: 8px;
+    color: #555;
+}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  Infectious Disease Outbreak Predictor
+</div>
+
+<!-- WRAPPER -->
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="map.html">Tamil Nadu Map</a>
+        <a href="prediction.html">Prediction</a>
+        <a href="visualizations.html">Visualizations</a>
+        <a href="report.html">Reports</a>
+        <a href="index.html">Logout</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+        <h2>Dashboard Overview</h2>
+
+        <div class="card-container">
+            <div class="card">
+                <h3>38</h3>
+                <p>Tamil Nadu Districts</p>
+            </div>
+            <div class="card">
+                <h3>Healthy</h3>
+                <p>System Status</p>
+            </div>
+            <div class="card">
+                <h3>AI Model</h3>
+                <p>Random Forest</p>
+            </div>
+            <div class="card">
+                <h3>2000–2025</h3>
+                <p>Dataset Range</p>
+            </div>
+        </div>
+
+        <br><br>
+        <h3>Select a module from the sidebar</h3>
+        <p>This system predicts infectious disease outbreaks using environmental data & satellite indices.</p>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 Infectious Disease Predictor – All rights reserved.
+</div>
+
+</body>
+</html>

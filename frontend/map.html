@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tamil Nadu Map</title>
+
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<style>
+#map {
+  height: 100%;
+  width: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  Infectious Disease Predictor – Tamil Nadu
+</div>
+
+<!-- LAYOUT WRAPPER -->
+<div class="wrapper">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="map.html">Tamil Nadu Map</a>
+    <a href="prediction.html">Prediction</a>
+    <a href="report.html">Reports</a>
+    <a href="index.html">Logout</a>
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <div class="content">
+    <h2>Tamil Nadu District Disease Map</h2>
+    <div id="map"></div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 Infectious Disease Outbreak Predictor
+</div>
+
+<script>
+var map = L.map('map').setView([10.8, 78.6], 7);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18
+}).addTo(map);
+
+fetch("maps/tamilnadu.geojson")
+.then(res => res.json())
+.then(data => {
+
+    L.geoJSON(data, {
+        onEachFeature: function(feature, layer) {
+
+            const district = feature.properties.dtname;
+            console.log("Extracted district:", district);
+
+            layer.on("click", function(){
+
+                fetch("http://127.0.0.1:5000/getDistrictData", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ district: district })
+                })
+                .then(res => res.json())
+                .then(info => {
+
+                    let historyHtml = "";
+                    info.history.forEach(row => {
+                        historyHtml += `${row.year}: ${row.cases} cases<br>`;
+                    });
+
+                    layer.bindPopup(`
+                        <b>${district}</b><br>
+                        Temperature: ${info.temperature}<br>
+                        Humidity: ${info.humidity}<br>
+                        Rainfall: ${info.rainfall}<br>
+                        <b>Risk Level: ${info.risk}</b><br><br>
+
+                        <b>Past Disease Data (2000–2025)</b><br>
+                        <div style="max-height:120px; overflow-y:auto; border:1px solid #ccc; padding:5px;">
+                            ${historyHtml}
+                        </div><br>
+
+                        <a href="prediction.html?district=${district}&temp=${info.temperature}&hum=${info.humidity}&rain=${info.rainfall}&risk=${info.risk}">
+                            Go to Prediction Page
+                        </a>
+                    `).openPopup();
+                });
+            });
+
+            layer.bindTooltip(district);
+        }
+    }).addTo(map);
+});
+</script>
+
+</body>
+</html>

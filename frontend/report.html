@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Reports</title>
+
+<link rel="stylesheet" href="css/layout.css">
+
+<style>
+.report-section {
+    background: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #aaa;
+}
+
+h3 {
+    margin-top: 0;
+}
+
+.download-btn {
+    padding: 12px 20px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.download-btn:hover {
+    background: #0e58a6;
+}
+
+.summary-card {
+    background: #f4f4f4;
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 5px solid #1976d2;
+    border-radius: 6px;
+}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    Infectious Disease Outbreak Predictor – Reports
+</div>
+
+<!-- WRAPPER -->
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="map.html">Tamil Nadu Map</a>
+        <a href="prediction.html">Prediction</a>
+        <a href="visualizations.html">Visualizations</a>
+        <a href="report.html">Reports</a>
+        <a href="index.html">Logout</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+        <h2>System Report Summary</h2>
+
+        <!-- SECTION 1 -->
+        <div class="report-section">
+            <h3>📌 Project Overview</h3>
+            <p>
+                This system predicts infectious disease outbreaks using environmental data 
+                (temperature, rainfall, humidity) and satellite indices (NDVI, Water Index) 
+                for Tamil Nadu districts from 2000 to 2025.
+            </p>
+        </div>
+
+        <!-- SECTION 2 -->
+        <div class="report-section">
+            <h3>📊 Dataset Information</h3>
+            
+            <div class="summary-card">Years Covered: <b>2000 – 2025</b></div>
+            <div class="summary-card">Number of Districts: <b>38 (Tamil Nadu)</b></div>
+            <div class="summary-card">Satellite Indices Used: <b>NDVI, Water Index</b></div>
+            <div class="summary-card">Environmental Parameters: <b>Temperature, Humidity, Rainfall</b></div>
+        </div>
+
+        <!-- SECTION 3 -->
+        <div class="report-section">
+            <h3>🤖 Machine Learning Model</h3>
+            
+            <div class="summary-card">Model Type: <b>Random Forest Classifier</b></div>
+            <div class="summary-card">Classification Output: <b>LOW / MEDIUM / HIGH</b> risk</div>
+            <div class="summary-card">Training Data Size: <b>2000 – 2025 per district</b></div>
+        </div>
+
+        <!-- SECTION 4 -->
+        <div class="report-section">
+            <h3>📍 District-Level Summary</h3>
+            <p>Click districts on the map page for dynamic updated data.</p>
+
+            <div class="summary-card">
+                Example:  
+                Chennai – Avg Temp: 30.5°C | Avg Rainfall: 120mm | Risk: HIGH
+            </div>
+        </div>
+
+        <!-- SECTION 5 -->
+        <div class="report-section">
+            <h3>⬇ Download PDF Report</h3>
+            <button class="download-btn" onclick="downloadPDF()">Download Full Report</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © 2025 Infectious Disease Predictor – All rights reserved
+</div>
+
+<script>
+function downloadPDF() {
+    alert("PDF download will be added later!");
+}
+</script>
+
+</body>
+</html>
