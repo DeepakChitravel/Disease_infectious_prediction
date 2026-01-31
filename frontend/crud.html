@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Data CRUD - Admin Dashboard</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #d32f2f;
+            --secondary-color: #1a237e;
+            --accent-color: #ff6b35;
+            --success-color: #2e8b57;
+            --warning-color: #ffa726;
+            --dark-color: #121212;
+            --light-color: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header Styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--secondary-color), #283593);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .dashboard-header .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #eef2f7;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .stat-card .stat-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.95rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Main Content Card */
+        .main-content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 1px solid #eef2f7;
+        }
+
+        .card-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-header-section h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header-section h2 i {
+            color: var(--primary-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), #b71c1c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, #b71c1c, var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4);
+            color: white;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, var(--success-color), #1e7a4c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(46, 139, 87, 0.3);
+        }
+
+        .btn-success-custom:hover {
+            background: linear-gradient(135deg, #1e7a4c, var(--success-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 139, 87, 0.4);
+            color: white;
+        }
+
+        .btn-warning-custom {
+            background: linear-gradient(135deg, var(--warning-color), #f57c00);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .btn-warning-custom:hover {
+            background: linear-gradient(135deg, #f57c00, var(--warning-color));
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .btn-danger-custom {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger-custom:hover {
+            background: linear-gradient(135deg, #c82333, #dc3545);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* DataTable Styling */
+        #recordsTable_wrapper {
+            margin-top: 20px;
+        }
+
+        table.dataTable {
+            border-collapse: collapse !important;
+            margin-top: 10px !important;
+        }
+
+        table.dataTable thead th {
+            background: linear-gradient(135deg, var(--secondary-color), #283593);
+            color: white;
+            border: none;
+            padding: 15px 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        table.dataTable tbody td {
+            padding: 14px 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 0.95rem;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: rgba(211, 47, 47, 0.05);
+        }
+
+        /* Status Badges */
+        .badge-custom {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .badge-high {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .badge-medium {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .badge-low {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        /* Modal Styling */
+        .modal-content-custom {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .modal-header-custom {
+            background: linear-gradient(135deg, var(--primary-color), #b71c1c);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: none;
+        }
+
+        .modal-header-custom .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-header-custom .btn-close {
+            filter: invert(1) brightness(2);
+            opacity: 0.8;
+        }
+
+        .modal-header-custom .btn-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body-custom {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-control-custom {
+            border: 2px solid #eef2f7;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+        }
+
+        /* Search and Filter */
+        .search-filter-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #eef2f7;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .search-box input {
+            padding-left: 45px;
+            border-radius: 10px;
+            border: 2px solid #eef2f7;
+            height: 45px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border: 2px solid #eef2f7;
+            background: white;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #888;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .spinner-custom {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .card-header-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 20px;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .main-content-card {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table.dataTable {
+                font-size: 0.9rem;
+            }
+            
+            table.dataTable thead th,
+            table.dataTable tbody td {
+                padding: 10px 8px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-primary-custom,
+            .btn-success-custom {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+            
+            .modal-body-custom {
+                padding: 20px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-custom"></div>
+        <p>Loading data...</p>
+    </div>
+
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="content">
+                <h1><i class="bi bi-database"></i> Disease Dataset Management</h1>
+                <p>CRUD panel for managing disease prediction records. Add, edit, delete, and view all data entries.</p>
+                <div class="mt-3">
+                    <span class="badge bg-warning me-2"><i class="bi bi-shield-check me-1"></i> Live Database</span>
+                    <span class="badge bg-info"><i class="bi bi-clock me-1"></i> Auto-save Enabled</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-clipboard-data"></i>
+                </div>
+                <div class="stat-value" id="totalRecords">0</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value" id="yearRange">-</div>
+                <div class="stat-label">Year Range</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-hospital"></i>
+                </div>
+                <div class="stat-value" id="uniqueDiseases">0</div>
+                <div class="stat-label">Unique Diseases</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="stat-value" id="uniqueDistricts">0</div>
+                <div class="stat-label">Districts Covered</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content-card">
+            <div class="card-header-section">
+                <h2><i class="bi bi-table"></i> Disease Records</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-success-custom" onclick="openAddModal()">
+                        <i class="bi bi-plus-circle"></i> Add New Record
+                    </button>
+                    <button class="btn btn-primary-custom" onclick="exportData()">
+                        <i class="bi bi-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="search-filter-section">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search records...">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" onclick="filterRecords('all')">All</button>
+                            <button class="filter-btn" onclick="filterRecords('high')">High Risk</button>
+                            <button class="filter-btn" onclick="filterRecords('medium')">Medium Risk</button>
+                            <button class="filter-btn" onclick="filterRecords('low')">Low Risk</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table id="recordsTable" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Year</th>
+                            <th>State</th>
+                            <th>District</th>
+                            <th>Disease</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Rainfall</th>
+                            <th>Risk Level</th>
+                            <th>Cases</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="recordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title" id="modalTitle">
+                        <i class="bi bi-plus-circle" id="modalIcon"></i>
+                        <span id="modalTitleText">Add New Record</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-custom">
+                    <form id="recordForm">
+                        <input type="hidden" id="recordId">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Year *</label>
+                                    <input type="number" class="form-control form-control-custom" id="year" 
+                                           min="2000" max="2050" required placeholder="Enter year">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">State *</label>
+                                    <input type="text" class="form-control form-control-custom" id="state" 
+                                           required placeholder="Enter state">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">District *</label>
+                                    <input type="text" class="form-control form-control-custom" id="district" 
+                                           required placeholder="Enter district">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Disease Name *</label>
+                                    <select class="form-control form-control-custom" id="disease_name" required>
+                                        <option value="">Select disease</option>
+                                        <option value="Dengue">Dengue</option>
+                                        <option value="Malaria">Malaria</option>
+                                        <option value="Chikungunya">Chikungunya</option>
+                                        <option value="Leptospirosis">Leptospirosis</option>
+                                        <option value="Typhoid">Typhoid</option>
+                                        <option value="Cholera">Cholera</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Temperature (°C) *</label>
+                                    <input type="number" class="form-control form-control-custom" id="temperature" 
+                                           step="0.1" required placeholder="e.g., 28.5">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Humidity (%) *</label>
+                                    <input type="number" class="form-control form-control-custom" id="humidity" 
+                                           min="0" max="100" step="0.1" required placeholder="e.g., 75.2">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Rainfall (mm) *</label>
+                                    <input type="number" class="form-control form-control-custom" id="rainfall" 
+                                           step="0.1" required placeholder="e.g., 150.5">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">NDVI *</label>
+                                    <input type="number" class="form-control form-control-custom" id="ndvi" 
+                                           min="-1" max="1" step="0.01" required placeholder="e.g., 0.65">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Water Index *</label>
+                                    <input type="number" class="form-control form-control-custom" id="water_index" 
+                                           min="0" max="1" step="0.01" required placeholder="e.g., 0.45">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Cases *</label>
+                                    <input type="number" class="form-control form-control-custom" id="cases" 
+                                           min="0" required placeholder="e.g., 125">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Risk Level (Auto-calculated)</label>
+                            <div class="risk-indicator">
+                                <span class="badge-custom" id="riskIndicator">Not calculated</span>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Fields marked with * are required. Risk level is automatically calculated based on environmental factors.
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary-custom" id="saveBtn">
+                                <i class="bi bi-save"></i> Save Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-custom">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-trash" style="font-size: 3rem; color: #dc3545;"></i>
+                    </div>
+                    <h5 class="text-center mb-3">Are you sure you want to delete this record?</h5>
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        This action cannot be undone. The record will be permanently deleted from the database.
+                    </div>
+                    <div class="record-details p-3 bg-light rounded">
+                        <p class="mb-1"><strong>Record ID:</strong> <span id="deleteRecordId"></span></p>
+                        <p class="mb-1"><strong>Details:</strong> <span id="deleteRecordDetails"></span></p>
+                        <p class="mb-0"><strong>Added:</strong> <span id="deleteRecordDate"></span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger-custom" id="confirmDeleteBtn">
+                        <i class="bi bi-trash"></i> Delete Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye"></i>
+                        Record Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-custom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Basic Information</h6>
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td><strong>Record ID:</strong></td>
+                                            <td id="viewId"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Year:</strong></td>
+                                            <td id="viewYear"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>State:</strong></td>
+                                            <td id="viewState"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>District:</strong></td>
+                                            <td id="viewDistrict"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Disease:</strong></td>
+                                            <td id="viewDisease"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Environmental Data</h6>
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td><strong>Temperature:</strong></td>
+                                            <td id="viewTemp"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Humidity:</strong></td>
+                                            <td id="viewHumidity"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Rainfall:</strong></td>
+                                            <td id="viewRainfall"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>NDVI:</strong></td>
+                                            <td id="viewNDVI"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Water Index:</strong></td>
+                                            <td id="viewWaterIndex"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Risk Assessment</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h3 class="mb-0" id="viewCases"></h3>
+                                            <p class="text-muted mb-0">Reported Cases</p>
+                                        </div>
+                                        <div>
+                                            <span class="badge-custom" id="viewRiskLevel"></span>
+                                            <p class="text-muted mb-0 mt-1">Risk Level</p>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-warning-custom" onclick="editFromView()">
+                                                <i class="bi bi-pencil"></i> Edit Record
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        let dataTable;
+        let allRecords = [];
+        let recordToDelete = null;
+        let currentViewRecord = null;
+
+        // Initialize DataTable
+        function initializeDataTable() {
+            dataTable = $('#recordsTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [10] },
+                    { 
+                        render: function(data, type, row) {
+                            // Format risk level with badge
+                            if (type === 'display') {
+                                let badgeClass = 'badge-low';
+                                if (data === 'HIGH') badgeClass = 'badge-high';
+                                else if (data === 'MEDIUM') badgeClass = 'badge-medium';
+                                return `<span class="badge-custom ${badgeClass}">${data}</span>`;
+                            }
+                            return data;
+                        },
+                        targets: [8]
+                    }
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search records...",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ records",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Add search event listener
+                    $('#searchInput').on('keyup', function() {
+                        dataTable.search(this.value).draw();
+                    });
+                }
+            });
+        }
+
+        // Load records from API
+        async function loadRecords() {
+            try {
+                showLoading(true);
+                const response = await fetch("http://127.0.0.1:5000/getAllRecords");
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    allRecords = data;
+                    renderTable();
+                    updateStats();
+                } else {
+                    showError('Invalid data format received');
+                }
+            } catch (error) {
+                showError('Error loading records: ' + error.message);
+                // For demo purposes, load sample data
+                loadSampleData();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load sample data for demo
+        function loadSampleData() {
+            const sampleData = [
+                {
+                    id: 1,
+                    year: 2023,
+                    state: "Tamil Nadu",
+                    district: "Chennai",
+                    disease_name: "Dengue",
+                    temperature: 28.5,
+                    humidity: 75.2,
+                    rainfall: 150.5,
+                    ndvi: 0.65,
+                    water_index: 0.45,
+                    cases: 125,
+                    created_at: "2024-01-15"
+                },
+                {
+                    id: 2,
+                    year: 2023,
+                    state: "Tamil Nadu",
+                    district: "Coimbatore",
+                    disease_name: "Malaria",
+                    temperature: 26.8,
+                    humidity: 68.4,
+                    rainfall: 89.2,
+                    ndvi: 0.72,
+                    water_index: 0.38,
+                    cases: 42,
+                    created_at: "2024-01-14"
+                },
+                {
+                    id: 3,
+                    year: 2023,
+                    state: "Tamil Nadu",
+                    district: "Madurai",
+                    disease_name: "Chikungunya",
+                    temperature: 30.2,
+                    humidity: 82.1,
+                    rainfall: 210.8,
+                    ndvi: 0.58,
+                    water_index: 0.52,
+                    cases: 87,
+                    created_at: "2024-01-13"
+                },
+                {
+                    id: 4,
+                    year: 2023,
+                    state: "Tamil Nadu",
+                    district: "Salem",
+                    disease_name: "Leptospirosis",
+                    temperature: 27.6,
+                    humidity: 71.3,
+                    rainfall: 132.4,
+                    ndvi: 0.61,
+                    water_index: 0.41,
+                    cases: 33,
+                    created_at: "2024-01-12"
+                },
+                {
+                    id: 5,
+                    year: 2023,
+                    state: "Tamil Nadu",
+                    district: "Tiruchirappalli",
+                    disease_name: "Dengue",
+                    temperature: 29.1,
+                    humidity: 78.9,
+                    rainfall: 167.3,
+                    ndvi: 0.68,
+                    water_index: 0.46,
+                    cases: 94,
+                    created_at: "2024-01-11"
+                }
+            ];
+            
+            allRecords = sampleData;
+            renderTable();
+            updateStats();
+            showSuccess('Loaded sample data (demo mode)');
+        }
+
+        // Render table with data
+        function renderTable() {
+            const tableBody = document.querySelector('#recordsTable tbody');
+            tableBody.innerHTML = '';
+            
+            allRecords.forEach(record => {
+                const riskLevel = calculateRiskLevel(record);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${record.id || '-'}</td>
+                    <td><strong>${record.year}</strong></td>
+                    <td>${record.state}</td>
+                    <td>${record.district}</td>
+                    <td>${record.disease_name}</td>
+                    <td>${record.temperature}°C</td>
+                    <td>${record.humidity}%</td>
+                    <td>${record.rainfall}mm</td>
+                    <td>${riskLevel}</td>
+                    <td><span class="badge bg-secondary">${record.cases}</span></td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewRecord(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="View">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="openEditModal(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // If DataTable is initialized, update it
+            if (dataTable) {
+                dataTable.destroy();
+            }
+            initializeDataTable();
+        }
+
+        // Calculate risk level based on environmental factors
+        function calculateRiskLevel(record) {
+            let riskScore = 0;
+            
+            // Temperature: Higher temperature increases risk
+            if (record.temperature > 30) riskScore += 2;
+            else if (record.temperature > 28) riskScore += 1;
+            
+            // Humidity: Higher humidity increases risk
+            if (record.humidity > 80) riskScore += 2;
+            else if (record.humidity > 70) riskScore += 1;
+            
+            // Rainfall: Moderate to high rainfall increases risk
+            if (record.rainfall > 150) riskScore += 2;
+            else if (record.rainfall > 100) riskScore += 1;
+            
+            // NDVI: Higher vegetation index can increase risk for some diseases
+            if (record.ndvi > 0.6) riskScore += 1;
+            
+            // Cases: Higher number of cases increases risk level
+            if (record.cases > 100) riskScore += 2;
+            else if (record.cases > 50) riskScore += 1;
+            
+            if (riskScore >= 6) return 'HIGH';
+            if (riskScore >= 3) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        // Update statistics
+        function updateStats() {
+            if (allRecords.length === 0) {
+                document.getElementById('totalRecords').textContent = '0';
+                document.getElementById('yearRange').textContent = '-';
+                document.getElementById('uniqueDiseases').textContent = '0';
+                document.getElementById('uniqueDistricts').textContent = '0';
+                return;
+            }
+            
+            // Total records
+            document.getElementById('totalRecords').textContent = allRecords.length;
+            
+            // Year range
+            const years = [...new Set(allRecords.map(r => r.year))].sort();
+            document.getElementById('yearRange').textContent = `${years[0]}-${years[years.length-1]}`;
+            
+            // Unique diseases
+            const uniqueDiseases = new Set(allRecords.map(r => r.disease_name));
+            document.getElementById('uniqueDiseases').textContent = uniqueDiseases.size;
+            
+            // Unique districts
+            const uniqueDistricts = new Set(allRecords.map(r => r.district));
+            document.getElementById('uniqueDistricts').textContent = uniqueDistricts.size;
+        }
+
+        // Open add modal
+        function openAddModal() {
+            document.getElementById('modalTitleText').textContent = 'Add New Record';
+            document.getElementById('modalIcon').className = 'bi bi-plus-circle';
+            document.getElementById('recordId').value = '';
+            document.getElementById('recordForm').reset();
+            document.getElementById('riskIndicator').textContent = 'Not calculated';
+            document.getElementById('riskIndicator').className = 'badge-custom';
+            
+            const modal = new bootstrap.Modal(document.getElementById('recordModal'));
+            modal.show();
+        }
+
+        // Open edit modal
+        function openEditModal(record) {
+            document.getElementById('modalTitleText').textContent = 'Edit Record';
+            document.getElementById('modalIcon').className = 'bi bi-pencil';
+            document.getElementById('recordId').value = record.id || '';
+            document.getElementById('year').value = record.year;
+            document.getElementById('state').value = record.state;
+            document.getElementById('district').value = record.district;
+            document.getElementById('disease_name').value = record.disease_name;
+            document.getElementById('temperature').value = record.temperature;
+            document.getElementById('humidity').value = record.humidity;
+            document.getElementById('rainfall').value = record.rainfall;
+            document.getElementById('ndvi').value = record.ndvi;
+            document.getElementById('water_index').value = record.water_index;
+            document.getElementById('cases').value = record.cases;
+            
+            // Calculate and display risk level
+            updateRiskIndicator(record);
+            
+            const modal = new bootstrap.Modal(document.getElementById('recordModal'));
+            modal.show();
+        }
+
+        // Update risk indicator in form
+        function updateRiskIndicator(record) {
+            const riskLevel = calculateRiskLevel(record);
+            const indicator = document.getElementById('riskIndicator');
+            indicator.textContent = riskLevel;
+            
+            let badgeClass = 'badge-low';
+            if (riskLevel === 'HIGH') badgeClass = 'badge-high';
+            else if (riskLevel === 'MEDIUM') badgeClass = 'badge-medium';
+            
+            indicator.className = `badge-custom ${badgeClass}`;
+        }
+
+        // View record details
+        function viewRecord(record) {
+            currentViewRecord = record;
+            
+            document.getElementById('viewId').textContent = record.id || '-';
+            document.getElementById('viewYear').textContent = record.year;
+            document.getElementById('viewState').textContent = record.state;
+            document.getElementById('viewDistrict').textContent = record.district;
+            document.getElementById('viewDisease').textContent = record.disease_name;
+            document.getElementById('viewTemp').textContent = `${record.temperature}°C`;
+            document.getElementById('viewHumidity').textContent = `${record.humidity}%`;
+            document.getElementById('viewRainfall').textContent = `${record.rainfall}mm`;
+            document.getElementById('viewNDVI').textContent = record.ndvi;
+            document.getElementById('viewWaterIndex').textContent = record.water_index;
+            document.getElementById('viewCases').textContent = record.cases;
+            
+            const riskLevel = calculateRiskLevel(record);
+            const riskElement = document.getElementById('viewRiskLevel');
+            riskElement.textContent = riskLevel;
+            
+            let badgeClass = 'badge-low';
+            if (riskLevel === 'HIGH') badgeClass = 'badge-high';
+            else if (riskLevel === 'MEDIUM') badgeClass = 'badge-medium';
+            riskElement.className = `badge-custom ${badgeClass}`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('viewModal'));
+            modal.show();
+        }
+
+        // Edit from view modal
+        function editFromView() {
+            const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewModal'));
+            viewModal.hide();
+            
+            setTimeout(() => {
+                if (currentViewRecord) {
+                    openEditModal(currentViewRecord);
+                }
+            }, 300);
+        }
+
+        // Open delete confirmation modal
+        function openDeleteModal(record) {
+            recordToDelete = record;
+            
+            document.getElementById('deleteRecordId').textContent = record.id || '-';
+            document.getElementById('deleteRecordDetails').textContent = 
+                `${record.year} - ${record.district} (${record.disease_name})`;
+            document.getElementById('deleteRecordDate').textContent = 
+                record.created_at ? new Date(record.created_at).toLocaleDateString() : 'Unknown';
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        // Form submission handler
+        document.getElementById('recordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const recordId = document.getElementById('recordId').value;
+            const isEdit = !!recordId;
+            
+            const formData = {
+                year: parseInt(document.getElementById('year').value),
+                state: document.getElementById('state').value,
+                district: document.getElementById('district').value,
+                disease_name: document.getElementById('disease_name').value,
+                temperature: parseFloat(document.getElementById('temperature').value),
+                humidity: parseFloat(document.getElementById('humidity').value),
+                rainfall: parseFloat(document.getElementById('rainfall').value),
+                ndvi: parseFloat(document.getElementById('ndvi').value),
+                water_index: parseFloat(document.getElementById('water_index').value),
+                cases: parseInt(document.getElementById('cases').value)
+            };
+            
+            try {
+                showLoading(true);
+                
+                let url, method;
+                if (isEdit) {
+                    url = "http://127.0.0.1:5000/updateRecord";
+                    method = "PUT";
+                    formData.id = recordId;
+                } else {
+                    url = "http://127.0.0.1:5000/addRecord";
+                    method = "POST";
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success' || result.message) {
+                    showSuccess(isEdit ? 'Record updated successfully!' : 'Record added successfully!');
+                    loadRecords();
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('recordModal'));
+                    modal.hide();
+                } else {
+                    showError('Operation failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                showError('Error saving record: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Delete record
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (!recordToDelete) return;
+            
+            try {
+                showLoading(true);
+                
+                const response = await fetch("http://127.0.0.1:5000/deleteRecord", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        id: recordToDelete.id,
+                        year: recordToDelete.year,
+                        district: recordToDelete.district 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success' || result.message) {
+                    showSuccess('Record deleted successfully!');
+                    loadRecords();
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                    modal.hide();
+                    recordToDelete = null;
+                } else {
+                    showError('Delete failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                showError('Error deleting record: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Filter records
+        function filterRecords(filter) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (filter === 'all') {
+                renderTable();
+            } else {
+                // Filter by risk level
+                const filtered = allRecords.filter(record => {
+                    const riskLevel = calculateRiskLevel(record);
+                    return riskLevel === filter.toUpperCase();
+                });
+                
+                // Update table with filtered data
+                const tableBody = document.querySelector('#recordsTable tbody');
+                tableBody.innerHTML = '';
+                
+                filtered.forEach(record => {
+                    const riskLevel = calculateRiskLevel(record);
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${record.id || '-'}</td>
+                        <td><strong>${record.year}</strong></td>
+                        <td>${record.state}</td>
+                        <td>${record.district}</td>
+                        <td>${record.disease_name}</td>
+                        <td>${record.temperature}°C</td>
+                        <td>${record.humidity}%</td>
+                        <td>${record.rainfall}mm</td>
+                        <td>${riskLevel}</td>
+                        <td><span class="badge bg-secondary">${record.cases}</span></td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewRecord(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="openEditModal(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${JSON.stringify(record).replace(/"/g, '&quot;')})" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                if (dataTable) {
+                    dataTable.destroy();
+                }
+                initializeDataTable();
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + ["ID,Year,State,District,Disease,Temperature,Humidity,Rainfall,NDVI,Water Index,Cases,Risk Level"]
+                    .concat(allRecords.map(record => 
+                        `${record.id || ''},${record.year},${record.state},${record.district},${record.disease_name},${record.temperature},${record.humidity},${record.rainfall},${record.ndvi},${record.water_index},${record.cases},${calculateRiskLevel(record)}`
+                    )).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `disease_data_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess('Data exported successfully!');
+        }
+
+        // Real-time risk calculation on form input
+        document.querySelectorAll('#recordForm input, #recordForm select').forEach(element => {
+            element.addEventListener('input', function() {
+                // Only calculate if we have all required fields
+                const temp = document.getElementById('temperature').value;
+                const humidity = document.getElementById('humidity').value;
+                const rainfall = document.getElementById('rainfall').value;
+                const cases = document.getElementById('cases').value;
+                
+                if (temp && humidity && rainfall && cases) {
+                    const tempRecord = {
+                        temperature: parseFloat(temp),
+                        humidity: parseFloat(humidity),
+                        rainfall: parseFloat(rainfall),
+                        ndvi: parseFloat(document.getElementById('ndvi').value || 0),
+                        water_index: parseFloat(document.getElementById('water_index').value || 0),
+                        cases: parseInt(cases)
+                    };
+                    updateRiskIndicator(tempRecord);
+                }
+            });
+        });
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                max-width: 400px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                border-radius: 10px;
+            `;
+            notification.innerHTML = `
+                <i class="bi ${type === 'error' ? 'bi-exclamation-triangle' : 'bi-check-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecords();
+            
+            // Auto-refresh data every 30 seconds
+            setInterval(loadRecords, 30000);
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
-year,state,district,temperature,humidity,rainfall,ndvi,water_index,cases
-2000,Tamil Nadu,Ariyalur,35.2,67.9,83.2,0.68,0.51,72
+year,state,district,disease_name,temperature,humidity,rainfall,ndvi,water_index,cases
 2001,Tamil Nadu,Ariyalur,34.1,75.3,145.5,0.61,0.4,138
 2002,Tamil Nadu,Ariyalur,34.0,81.2,138.6,0.43,0.48,152
 2003,Tamil Nadu,Ariyalur,28.7,66.9,110.8,0.64,0.42,197

@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - Disease Predictor Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --admin-primary: #d32f2f;
+            --admin-secondary: #1a237e;
+            --admin-accent: #ff6b35;
+            --admin-dark: #121212;
+            --admin-light: #f5f5f5;
+            --admin-success: #2e8b57;
+            --admin-warning: #ffa726;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--admin-primary), #b71c1c);
+            color: white;
+            height: var(--header-height);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                var(--admin-accent), 
+                #ff9800, 
+                var(--admin-accent));
+            background-size: 200% 100%;
+            animation: gradientFlow 3s linear infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .admin-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-header .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: adminPulse 3s infinite;
+        }
+
+        @keyframes adminPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+        }
+
+        .admin-header .logo-icon i {
+            font-size: 22px;
+            color: white;
+        }
+
+        .admin-header .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-header .logo small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .admin-header .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .admin-header .admin-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-header .admin-avatar:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .admin-header .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Admin Sidebar */
+        .admin-sidebar {
+            background: linear-gradient(180deg, #121212 0%, #1a1a1a 100%);
+            color: white;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            z-index: 999;
+            overflow-y: auto;
+            transition: all 0.3s;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-sidebar .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .admin-sidebar .sidebar-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--admin-accent);
+            margin-bottom: 5px;
+        }
+
+        .admin-sidebar .sidebar-header p {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .admin-sidebar .nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .admin-sidebar .nav-item {
+            position: relative;
+        }
+
+        .admin-sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            font-weight: 500;
+        }
+
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-left-color: var(--admin-primary);
+            padding-left: 30px;
+        }
+
+        .admin-sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--admin-accent);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .admin-sidebar .nav-link i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .admin-sidebar .nav-link .badge {
+            margin-left: auto;
+            background: var(--admin-primary);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+
+        .admin-sidebar .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Content */
+        .admin-main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 30px;
+            min-height: calc(100vh - var(--header-height));
+            transition: all 0.3s;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--admin-secondary), #283593);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(26, 35, 126, 0.3);
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .page-header .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* Settings Cards */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            border: 1px solid #eef2f7;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .settings-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .settings-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .settings-card.general::before {
+            background: var(--admin-secondary);
+        }
+
+        .settings-card.security::before {
+            background: var(--admin-primary);
+        }
+
+        .settings-card.model::before {
+            background: var(--admin-accent);
+        }
+
+        .settings-card.notifications::before {
+            background: var(--admin-success);
+        }
+
+        .settings-card .settings-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .settings-card .settings-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .settings-card.general .settings-icon {
+            background: var(--admin-secondary);
+        }
+
+        .settings-card.security .settings-icon {
+            background: var(--admin-primary);
+        }
+
+        .settings-card.model .settings-icon {
+            background: var(--admin-accent);
+        }
+
+        .settings-card.notifications .settings-icon {
+            background: var(--admin-success);
+        }
+
+        .settings-card .settings-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--admin-secondary);
+            margin: 0;
+        }
+
+        .settings-card .settings-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Setting Item */
+        .setting-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .setting-item .setting-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-item .setting-label .badge {
+            font-size: 0.7rem;
+            font-weight: normal;
+        }
+
+        .setting-item .setting-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .setting-item .setting-control {
+            margin-top: 10px;
+        }
+
+        /* Switch Toggle */
+        .form-check-input:checked {
+            background-color: var(--admin-primary);
+            border-color: var(--admin-primary);
+        }
+
+        .form-check-input:focus {
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid #dc3545;
+        }
+
+        .danger-zone .danger-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            color: #dc3545;
+        }
+
+        .danger-zone .danger-header i {
+            font-size: 1.8rem;
+        }
+
+        .danger-zone .danger-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .danger-zone .danger-item {
+            padding: 20px;
+            background: #fff5f5;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f8d7da;
+        }
+
+        .danger-zone .danger-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .danger-zone .danger-item h5 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
+        .danger-zone .danger-item p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                left: -100%;
+            }
+            
+            .admin-sidebar.active {
+                left: 0;
+            }
+            
+            .admin-main {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 0 15px;
+            }
+            
+            .admin-main {
+                padding: 20px 15px;
+            }
+            
+            .settings-card {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .admin-header .logo h1 {
+                font-size: 1.2rem;
+            }
+            
+            .settings-card .settings-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--admin-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="bi bi-shield-shaded"></i>
+            </div>
+            <div>
+                <h1>Admin Dashboard</h1>
+                <small>Disease Predictor - System Settings</small>
+            </div>
+        </div>
+        
+        <div class="admin-info">
+            <div class="admin-avatar" data-bs-toggle="modal" data-bs-target="#adminProfileModal">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Admin">
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Admin Sidebar -->
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <h3>Administration Panel</h3>
+            <p>System Management Tools</p>
+        </div>
+        
+        <ul class="nav">
+            <li class="nav-item">
+                <a href="admin_dashboard.html" class="nav-link">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="crud.html" class="nav-link">
+                    <i class="bi bi-database"></i>
+                    <span>Manage Dataset (CRUD)</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="users.html" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="systemreports.html" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>System Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="feedback.html" class="nav-link">
+                    <i class="bi bi-chat-left-text"></i>
+                    <span>User Feedback</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="systemsettings.html" class="nav-link active">
+                    <i class="bi bi-gear"></i>
+                    <span>System Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="logs.html" class="nav-link">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Activity Logs</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline-light w-100" onclick="confirmLogout()">
+                <i class="bi bi-box-arrow-right me-2"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="content">
+                <h1><i class="bi bi-gear me-2"></i>System Settings</h1>
+                <p>Configure system parameters, manage security settings, and control application behavior.</p>
+                <div class="mt-3">
+                    <span class="badge bg-warning me-2"><i class="bi bi-shield-check me-1"></i> Admin Access Required</span>
+                    <span class="badge bg-info"><i class="bi bi-clock me-1"></i> Changes take effect immediately</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Cards Grid -->
+        <div class="settings-grid">
+            <!-- General Settings -->
+            <div class="settings-card general">
+                <div class="settings-header">
+                    <div class="settings-icon">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <h3 class="settings-title">General Settings</h3>
+                </div>
+                <p class="settings-desc">Configure basic system parameters and application settings.</p>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        System Name
+                        <span class="badge bg-primary">Required</span>
+                    </div>
+                    <p class="setting-desc">The name displayed throughout the application.</p>
+                    <div class="setting-control">
+                        <input type="text" class="form-control" id="systemName" value="Disease Predictor">
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Default Language
+                    </div>
+                    <p class="setting-desc">Primary language for the user interface.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="defaultLanguage">
+                            <option value="en" selected>English</option>
+                            <option value="ta">Tamil</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Timezone
+                    </div>
+                    <p class="setting-desc">System timezone for all date/time operations.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="timezone">
+                            <option value="Asia/Kolkata" selected>IST - India (UTC+5:30)</option>
+                            <option value="UTC">UTC</option>
+                            <option value="America/New_York">EST - New York (UTC-5)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Date Format
+                    </div>
+                    <div class="setting-control">
+                        <select class="form-select" id="dateFormat">
+                            <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+                            <option value="mm/dd/yyyy" selected>MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-card security">
+                <div class="settings-header">
+                    <div class="settings-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h3 class="settings-title">Security Settings</h3>
+                </div>
+                <p class="settings-desc">Configure authentication, authorization, and security policies.</p>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Enable Two-Factor Authentication
+                    </div>
+                    <p class="setting-desc">Require users to verify login with email or SMS code.</p>
+                    <div class="setting-control">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="twoFactorAuth" checked>
+                            <label class="form-check-label" for="twoFactorAuth">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Max Login Attempts
+                    </div>
+                    <p class="setting-desc">Maximum failed attempts before account lockout.</p>
+                    <div class="setting-control">
+                        <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="1" max="10">
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Session Timeout (minutes)
+                    </div>
+                    <p class="setting-desc">Automatically logout inactive users after specified time.</p>
+                    <div class="setting-control">
+                        <input type="number" class="form-control" id="sessionTimeout" value="30" min="5" max="240">
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Password Policy
+                    </div>
+                    <p class="setting-desc">Minimum requirements for user passwords.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="passwordPolicy">
+                            <option value="low">Low (6+ characters)</option>
+                            <option value="medium" selected>Medium (8+ chars, mixed case)</option>
+                            <option value="high">High (10+ chars, special chars)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        IP Whitelist
+                    </div>
+                    <p class="setting-desc">Restrict access to specific IP addresses (comma separated).</p>
+                    <div class="setting-control">
+                        <textarea class="form-control" id="ipWhitelist" rows="2" placeholder="192.168.1.1, 10.0.0.1"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Settings -->
+            <div class="settings-card model">
+                <div class="settings-header">
+                    <div class="settings-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h3 class="settings-title">Model Settings</h3>
+                </div>
+                <p class="settings-desc">Configure machine learning model parameters and thresholds.</p>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Model Accuracy Threshold
+                    </div>
+                    <p class="setting-desc">Minimum accuracy percentage for model predictions.</p>
+                    <div class="setting-control">
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="accuracyThreshold" value="85" min="70" max="99">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Confidence Threshold
+                    </div>
+                    <p class="setting-desc">Minimum confidence score for displaying predictions.</p>
+                    <div class="setting-control">
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="confidenceThreshold" value="75" min="50" max="95">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Retrain Frequency
+                    </div>
+                    <p class="setting-desc">How often to retrain the model with new data.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="retrainFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Enable Auto-Retrain
+                    </div>
+                    <p class="setting-desc">Automatically retrain model when new data is available.</p>
+                    <div class="setting-control">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoRetrain" checked>
+                            <label class="form-check-label" for="autoRetrain">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Data Update Frequency
+                    </div>
+                    <p class="setting-desc">How often to update disease data from sources.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="dataUpdateFrequency">
+                            <option value="real-time">Real-time</option>
+                            <option value="hourly">Hourly</option>
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="settings-card notifications">
+                <div class="settings-header">
+                    <div class="settings-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h3 class="settings-title">Notification Settings</h3>
+                </div>
+                <p class="setting-desc">Configure email, SMS, and system notification preferences.</p>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Email Notifications
+                    </div>
+                    <p class="setting-desc">Send email notifications for important events.</p>
+                    <div class="setting-control">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        SMS Notifications
+                    </div>
+                    <p class="setting-desc">Send SMS alerts for critical system events.</p>
+                    <div class="setting-control">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="smsNotifications">
+                            <label class="form-check-label" for="smsNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Admin Alerts
+                    </div>
+                    <p class="setting-desc">Send alerts to administrators for system issues.</p>
+                    <div class="setting-control">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="adminAlerts" checked>
+                            <label class="form-check-label" for="adminAlerts">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Low Risk Threshold
+                    </div>
+                    <p class="setting-desc">Minimum risk level to trigger notifications.</p>
+                    <div class="setting-control">
+                        <select class="form-select" id="riskNotificationThreshold">
+                            <option value="low">Low Risk</option>
+                            <option value="medium" selected>Medium Risk</option>
+                            <option value="high">High Risk Only</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        Notification Schedule
+                    </div>
+                    <p class="setting-desc">Time of day to send daily summary notifications.</p>
+                    <div class="setting-control">
+                        <input type="time" class="form-control" id="notificationSchedule" value="09:00">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="danger-zone">
+            <div class="danger-header">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>Danger Zone</h3>
+            </div>
+            <p class="mb-4">These actions are irreversible. Proceed with extreme caution.</p>
+            
+            <div class="danger-item">
+                <h5>Clear System Cache</h5>
+                <p>Remove all cached data. This may temporarily slow down the system while cache rebuilds.</p>
+                <button class="btn btn-outline-warning" onclick="clearCache()">
+                    <i class="bi bi-trash me-1"></i> Clear Cache
+                </button>
+            </div>
+            
+            <div class="danger-item">
+                <h5>Reset System Settings</h5>
+                <p>Reset all settings to their default values. This action cannot be undone.</p>
+                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#resetSettingsModal">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset to Defaults
+                </button>
+            </div>
+            
+            <div class="danger-item">
+                <h5>System Maintenance Mode</h5>
+                <p>Put the system in maintenance mode. Users will see a maintenance page.</p>
+                <button class="btn btn-outline-dark" onclick="toggleMaintenanceMode()">
+                    <i class="bi bi-wrench me-1"></i> Enable Maintenance
+                </button>
+            </div>
+            
+            <div class="danger-item">
+                <h5>Purge Old Data</h5>
+                <p>Permanently delete data older than specified days. This action is irreversible.</p>
+                <div class="input-group mt-2" style="max-width: 300px;">
+                    <input type="number" class="form-control" id="purgeDays" value="365" min="30" max="3650">
+                    <span class="input-group-text">days</span>
+                    <button class="btn btn-danger" onclick="purgeOldData()">
+                        <i class="bi bi-trash3 me-1"></i> Purge
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Settings Button -->
+        <div class="text-center mt-4 mb-4">
+            <button class="btn btn-primary btn-lg" onclick="saveAllSettings()" style="padding: 12px 40px;">
+                <i class="bi bi-save me-2"></i> Save All Settings
+            </button>
+        </div>
+    </main>
+
+    <!-- Reset Settings Modal -->
+    <div class="modal fade" id="resetSettingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Reset</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to reset all system settings to their default values?</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All custom settings will be lost.
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirmReset">
+                        <label class="form-check-label" for="confirmReset">
+                            I understand that this action is irreversible
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="resetSettings()" id="resetButton" disabled>
+                        <i class="bi bi-arrow-clockwise me-1"></i> Reset Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Load settings from API
+        async function loadSettings() {
+            try {
+                showLoading(true);
+                const response = await fetch('http://localhost:5000/get_system_settings');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    populateSettings(data.settings);
+                } else {
+                    showError('Failed to load settings');
+                    // Use default values for demo
+                    useDefaultSettings();
+                }
+            } catch (error) {
+                showError('Error loading settings: ' + error.message);
+                // Use default values for demo
+                useDefaultSettings();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Populate settings from API data
+        function populateSettings(settings) {
+            // This function would map API settings to form elements
+            // For demo, we'll use the default values already in the HTML
+            console.log('Settings loaded:', settings);
+            showSuccess('Settings loaded successfully');
+        }
+
+        // Use default settings (for demo)
+        function useDefaultSettings() {
+            // Settings are already populated in HTML with default values
+            showSuccess('Using default settings');
+        }
+
+        // Save all settings
+        async function saveAllSettings() {
+            try {
+                showLoading(true);
+                
+                // Collect all settings
+                const settings = {
+                    system_name: document.getElementById('systemName').value,
+                    default_language: document.getElementById('defaultLanguage').value,
+                    timezone: document.getElementById('timezone').value,
+                    date_format: document.getElementById('dateFormat').value,
+                    two_factor_auth: document.getElementById('twoFactorAuth').checked,
+                    max_login_attempts: document.getElementById('maxLoginAttempts').value,
+                    session_timeout: document.getElementById('sessionTimeout').value,
+                    password_policy: document.getElementById('passwordPolicy').value,
+                    ip_whitelist: document.getElementById('ipWhitelist').value,
+                    accuracy_threshold: document.getElementById('accuracyThreshold').value,
+                    confidence_threshold: document.getElementById('confidenceThreshold').value,
+                    retrain_frequency: document.getElementById('retrainFrequency').value,
+                    auto_retrain: document.getElementById('autoRetrain').checked,
+                    data_update_frequency: document.getElementById('dataUpdateFrequency').value,
+                    email_notifications: document.getElementById('emailNotifications').checked,
+                    sms_notifications: document.getElementById('smsNotifications').checked,
+                    admin_alerts: document.getElementById('adminAlerts').checked,
+                    risk_notification_threshold: document.getElementById('riskNotificationThreshold').value,
+                    notification_schedule: document.getElementById('notificationSchedule').value
+                };
+                
+                // In a real app, you would send this to your API
+                // For demo, just show success message
+                setTimeout(() => {
+                    showSuccess('All settings saved successfully (demo)');
+                    showLoading(false);
+                }, 1000);
+                
+            } catch (error) {
+                showError('Error saving settings: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        // Clear cache
+        function clearCache() {
+            if (confirm('Are you sure you want to clear the system cache?')) {
+                showLoading(true);
+                setTimeout(() => {
+                    showSuccess('System cache cleared successfully');
+                    showLoading(false);
+                }, 1500);
+            }
+        }
+
+        // Toggle maintenance mode
+        function toggleMaintenanceMode() {
+            const isMaintenance = confirm('Enable maintenance mode? Users will see a maintenance page.');
+            if (isMaintenance) {
+                showLoading(true);
+                setTimeout(() => {
+                    showSuccess('Maintenance mode enabled');
+                    showLoading(false);
+                }, 1000);
+            }
+        }
+
+        // Purge old data
+        function purgeOldData() {
+            const days = document.getElementById('purgeDays').value;
+            if (confirm(`Permanently delete all data older than ${days} days? This action cannot be undone.`)) {
+                showLoading(true);
+                setTimeout(() => {
+                    showSuccess(`Data older than ${days} days has been purged`);
+                    showLoading(false);
+                }, 2000);
+            }
+        }
+
+        // Reset settings confirmation
+        document.getElementById('confirmReset').addEventListener('change', function() {
+            document.getElementById('resetButton').disabled = !this.checked;
+        });
+
+        // Reset settings
+        function resetSettings() {
+            showLoading(true);
+            setTimeout(() => {
+                // Reset form values
+                document.getElementById('systemName').value = 'Disease Predictor';
+                document.getElementById('defaultLanguage').value = 'en';
+                document.getElementById('timezone').value = 'Asia/Kolkata';
+                document.getElementById('dateFormat').value = 'mm/dd/yyyy';
+                document.getElementById('twoFactorAuth').checked = true;
+                document.getElementById('maxLoginAttempts').value = '5';
+                document.getElementById('sessionTimeout').value = '30';
+                document.getElementById('passwordPolicy').value = 'medium';
+                document.getElementById('ipWhitelist').value = '';
+                document.getElementById('accuracyThreshold').value = '85';
+                document.getElementById('confidenceThreshold').value = '75';
+                document.getElementById('retrainFrequency').value = 'weekly';
+                document.getElementById('autoRetrain').checked = true;
+                document.getElementById('dataUpdateFrequency').value = 'daily';
+                document.getElementById('emailNotifications').checked = true;
+                document.getElementById('smsNotifications').checked = false;
+                document.getElementById('adminAlerts').checked = true;
+                document.getElementById('riskNotificationThreshold').value = 'medium';
+                document.getElementById('notificationSchedule').value = '09:00';
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resetSettingsModal'));
+                modal.hide();
+                
+                showSuccess('All settings have been reset to default values');
+                showLoading(false);
+            }, 1500);
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.getElementById('adminMain');
+            
+            sidebar.classList.toggle('active');
+            
+            // Close sidebar when clicking outside on mobile
+            if (sidebar.classList.contains('active')) {
+                document.addEventListener('click', closeMenuOnClickOutside);
+            } else {
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        function closeMenuOnClickOutside(event) {
+            const sidebar = document.getElementById('adminSidebar');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            
+            if (!sidebar.contains(event.target) && !mobileBtn.contains(event.target)) {
+                sidebar.classList.remove('active');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        // Confirm logout
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                logout();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            // Clear admin session
+            localStorage.removeItem('adminLoggedIn');
+            window.location.href = 'admin_login.html';
+        }
+
+        // Show loading state
+        function showLoading(show) {
+            const loadingDiv = document.getElementById('loadingOverlay');
+            if (!loadingDiv && show) {
+                const div = document.createElement('div');
+                div.id = 'loadingOverlay';
+                div.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                `;
+                div.innerHTML = `
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                `;
+                document.body.appendChild(div);
+            } else if (loadingDiv && !show) {
+                loadingDiv.remove();
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 9999; max-width: 400px;';
+            alertDiv.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 9999; max-width: 400px;';
+            alertDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load settings
+            loadSettings();
+            
+            // Mobile menu toggle
+            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+            
+            // Auto-save reminder
+            setInterval(() => {
+                if (document.hasFocus()) {
+                    // Check for unsaved changes
+                    console.log('Auto-save check');
+                }
+            }, 300000); // Every 5 minutes
+            
+            // Check if admin is logged in
+            if (!localStorage.getItem('adminLoggedIn')) {
+                window.location.href = 'admin_login.html';
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 992) {
+                document.getElementById('adminSidebar').classList.remove('active');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Disease Predictor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #1976d2;
+            --secondary-color: #0d47a1;
+            --accent-color: #ff6b35;
+            --admin-red: #d32f2f;
+            --admin-dark: #1a237e;
+            --light-bg: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Security Pattern Background */
+        .security-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.05) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 2px, transparent 2px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: patternMove 20s linear infinite;
+        }
+
+        @keyframes patternMove {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 50px 50px;
+            }
+        }
+
+        /* Admin Login Container */
+        .admin-login-container {
+            width: 100%;
+            max-width: 450px;
+            animation: slideInDown 0.8s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Admin Card */
+        .admin-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 75px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            border-top: 5px solid var(--admin-red);
+        }
+
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Admin Header */
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--admin-red), #b71c1c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3);
+            animation: adminPulse 3s infinite;
+            position: relative;
+        }
+
+        @keyframes adminPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 15px 40px rgba(211, 47, 47, 0.5);
+                transform: scale(1.05);
+            }
+        }
+
+        .admin-icon::after {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border: 2px solid rgba(211, 47, 47, 0.3);
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        .admin-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .admin-header h1 {
+            color: var(--admin-dark);
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .admin-header p {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4CAF50, #2e8b57);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+            animation: badgeGlow 2s infinite;
+        }
+
+        @keyframes badgeGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            }
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-label i {
+            color: var(--admin-red);
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--admin-dark);
+            font-size: 20px;
+            z-index: 2;
+            transition: all 0.3s;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            border: 2px solid #e1e5eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.95);
+            font-family: 'Consolas', 'Monaco', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control:focus {
+            border-color: var(--admin-red);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-control:focus+i {
+            color: var(--admin-red);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            z-index: 2;
+            transition: all 0.3s;
+            padding: 5px;
+        }
+
+        .password-toggle:hover {
+            color: var(--admin-red);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--admin-red), #b71c1c);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(211, 47, 47, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .login-btn i {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .login-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        .login-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent);
+            transition: left 0.7s;
+        }
+
+        .login-btn:hover::after {
+            left: 100%;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Message Display */
+        .message-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            position: relative;
+            z-index: 1;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-box.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border-left: 5px solid #c62828;
+        }
+
+        .message-box.success {
+            background: linear-gradient(135deg, #4CAF50, #2e8b57);
+            color: white;
+            border-left: 5px solid #2e7d32;
+        }
+
+        .message-box i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        /* Security Features */
+        .security-features {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+            position: relative;
+            z-index: 1;
+        }
+
+        .security-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .security-item i {
+            color: #4CAF50;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .admin-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .admin-footer a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* Back to Main */
+        .back-to-main {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-to-main a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-to-main a:hover {
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        /* Two-Factor Section (Demo) */
+        .two-factor-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(25, 118, 210, 0.05);
+            border-radius: 10px;
+            border: 1px dashed rgba(25, 118, 210, 0.3);
+            display: none;
+        }
+
+        /* Activity Log (Demo) */
+        .activity-log {
+            position: absolute;
+            bottom: -40px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 576px) {
+            .admin-card {
+                padding: 30px 20px;
+            }
+
+            .admin-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .admin-icon i {
+                font-size: 30px;
+            }
+
+            .admin-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .security-features {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            body {
+                align-items: flex-start;
+                padding-top: 40px;
+            }
+        }
+
+        /* Security Scan Animation */
+        .security-scan {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    var(--accent-color),
+                    transparent);
+            animation: scan 2s infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            50% {
+                top: 100%;
+            }
+
+            100% {
+                top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Security Pattern Background -->
+    <div class="security-pattern"></div>
+
+    <!-- Security Scan Line -->
+    <div class="security-scan"></div>
+
+    <!-- Admin Login Container -->
+    <div class="admin-login-container">
+        <!-- Message Box -->
+        <div class="message-box" id="messageBox">
+            <i class="bi" id="messageIcon"></i>
+            <span id="messageText"></span>
+        </div>
+
+        <!-- Admin Card -->
+        <div class="admin-card">
+            <!-- Admin Header -->
+            <div class="admin-header">
+                <div class="admin-icon">
+                    <i class="bi bi-shield-shaded"></i>
+                </div>
+                <h1>Admin Portal</h1>
+                <p>Secure Access to System Administration</p>
+                <div class="security-badge">
+                    <i class="bi bi-shield-check"></i> SSL Secured
+                </div>
+            </div>
+
+            <!-- Admin Login Form -->
+            <form id="adminLoginForm" onsubmit="event.preventDefault(); adminLogin();">
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-person-badge"></i>
+                        ADMIN USERNAME
+                    </label>
+                    <div class="input-group">
+                        <i class="bi bi-person"></i>
+                        <input type="text" id="username" class="form-control" placeholder="Enter admin username"
+                            autocomplete="username" required>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-key"></i>
+                        ADMIN PASSWORD
+                    </label>
+                    <div class="input-group">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="password" class="form-control" placeholder="Enter admin password"
+                            autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Two-Factor Section (Demo) -->
+                <div class="two-factor-section" id="twoFactorSection">
+                    <label class="form-label">
+                        <i class="bi bi-phone"></i>
+                        2-FACTOR AUTHENTICATION
+                    </label>
+                    <input type="text" class="form-control" placeholder="Enter 6-digit code" maxlength="6">
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span id="btnText">Secure Login</span>
+                    <i class="bi bi-arrow-right-circle"></i>
+                    <div class="spinner" id="loginSpinner"></div>
+                </button>
+
+                <!-- Security Features -->
+                <div class="security-features">
+                    <div class="security-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>256-bit Encryption</span>
+                    </div>
+                    <div class="security-item">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Session Timeout: 15 min</span>
+                    </div>
+                    <div class="security-item">
+                        <i class="bi bi-eye-slash"></i>
+                        <span>IP Tracking Enabled</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Activity Log (Demo) -->
+            <div class="activity-log" id="activityLog">
+                <i class="bi bi-clock"></i> Last access: 2 minutes ago
+            </div>
+        </div>
+
+        <!-- Back to Main -->
+        <div class="back-to-main">
+            <a href="index.html">
+                <i class="bi bi-arrow-left"></i>
+                Back to Main Login
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="admin-footer">
+            <p>© 2025 Disease Predictor - Administrative System</p>
+            <p><i class="bi bi-exclamation-triangle"></i> Authorized Access Only - All activities are logged</p>
+            <p><a href="#"><i class="bi bi-question-circle"></i> Need help? Contact Security Team</a></p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show/hide password
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('togglePassword');
+            const icon = toggleBtn.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Show message
+        function showMessage(type, text) {
+            const messageBox = document.getElementById('messageBox');
+            const messageIcon = document.getElementById('messageIcon');
+            const messageText = document.getElementById('messageText');
+
+            messageBox.className = `message-box ${type}`;
+            messageText.textContent = text;
+
+            if (type === 'error') {
+                messageIcon.className = 'bi bi-exclamation-triangle';
+            } else if (type === 'success') {
+                messageIcon.className = 'bi bi-check-circle';
+            }
+
+            messageBox.style.display = 'block';
+
+            // Auto hide after 5 seconds for errors
+            if (type === 'error') {
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Simulate activity log
+        function showActivityLog() {
+            const activityLog = document.getElementById('activityLog');
+            const times = ['2 minutes ago', '5 minutes ago', '10 minutes ago', '15 minutes ago'];
+            const randomTime = times[Math.floor(Math.random() * times.length)];
+
+            activityLog.innerHTML = `<i class="bi bi-clock"></i> Last access: ${randomTime}`;
+            activityLog.style.display = 'block';
+
+            setTimeout(() => {
+                activityLog.style.display = 'none';
+            }, 3000);
+        }
+
+        // Admin login function
+        function adminLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('loginSpinner');
+
+            // Validation
+            if (!username || !password) {
+                showMessage('error', 'Please enter both username and password');
+                return;
+            }
+
+            // Show loading state
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+            loginBtn.disabled = true;
+
+            // Show activity log
+            showActivityLog();
+
+            // API call
+            fetch("http://127.0.0.1:5000/admin_login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.status === "success") {
+                        showMessage('success', 'Authentication successful! Redirecting...');
+
+                        // *** IMPORTANT FIX ***
+                        localStorage.setItem("adminLoggedIn", "true");
+
+                        // Simulate 2-factor auth (demo only)
+                        setTimeout(() => {
+                            window.location.href = "admin_dashboard.html";
+                        }, 1500);
+                    }
+                    else {
+                        // Reset button state
+                        btnText.style.display = 'block';
+                        spinner.style.display = 'none';
+                        loginBtn.disabled = false;
+
+                        // Show error
+                        showMessage('error', data.message || 'Invalid credentials');
+
+                        // Add shake animation to form
+                        const form = document.getElementById('adminLoginForm');
+                        form.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            form.style.animation = '';
+                        }, 500);
+                    }
+                })
+                .catch(error => {
+                    // Reset button state
+                    btnText.style.display = 'block';
+                    spinner.style.display = 'none';
+                    loginBtn.disabled = false;
+
+                    // Show error
+                    showMessage('error', 'Network error. Please try again.');
+                    console.error('Login error:', error);
+                });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            // Password toggle
+            document.getElementById('togglePassword').addEventListener('click', togglePasswordVisibility);
+
+            // Form submission
+            document.getElementById('adminLoginForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                adminLogin();
+            });
+
+            // Enter key support
+            document.getElementById('password').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    adminLogin();
+                }
+            });
+
+            // Show security warning on focus
+            document.getElementById('username').addEventListener('focus', function () {
+                showMessage('error', '⚠️ Warning: Admin access is monitored');
+                setTimeout(() => {
+                    document.getElementById('messageBox').style.display = 'none';
+                }, 3000);
+            });
+
+            // Simulate 2-factor on second attempt
+  
+
+            // Check if already logged in
+            if (localStorage.getItem("adminLoggedIn") === "true") {
+                window.location.href = "admin_dashboard.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

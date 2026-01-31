@@ -1,108 +1,1135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Tamil Nadu Map</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamil Nadu Map - Disease Predictor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #1976d2;
+            --secondary-color: #2e8b57;
+            --accent-color: #ff6b35;
+            --low-risk: #4CAF50;
+            --medium-risk: #FFC107;
+            --high-risk: #F44336;
+            --light-bg: #f8f9fa;
+            --sidebar-width: 250px;
+            --header-height: 70px;
+        }
 
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
 
-<style>
-#map {
-  height: 100%;
-  width: 100%;
-}
-</style>
+        /* Header Styling */
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+
+        .navbar-brand i {
+            color: var(--accent-color);
+            margin-right: 10px;
+        }
+
+        .user-profile {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-profile:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            padding: 2px;
+        }
+
+        /* Sidebar Styling - Responsive */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0d47a1 100%);
+            color: white;
+            height: calc(100vh - var(--header-height));
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            z-index: 1000;
+            transition: all 0.3s;
+            overflow-y: auto;
+            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar a {
+            color: rgba(255, 255, 255, 0.85);
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar a i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 25px;
+            min-height: calc(100vh - var(--header-height));
+            transition: all 0.3s;
+        }
+
+        /* Map Container */
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+
+        /* Controls Card */
+        .controls-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        /* Risk Level Indicators */
+        .risk-indicator {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .risk-low {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--low-risk);
+        }
+
+        .risk-medium {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #b38700;
+        }
+
+        .risk-high {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: var(--high-risk);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        /* District Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 100px;
+            right: 30px;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            z-index: 1000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        /* Leaflet Popup Customization */
+        .leaflet-popup-content {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 300px !important;
+        }
+
+        .leaflet-popup-content h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .popup-data {
+            margin: 10px 0;
+        }
+
+        .popup-data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .popup-data-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .popup-data-value {
+            color: #333;
+        }
+
+        .history-scroll {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .history-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 0;
+                padding: 0;
+                left: -100%;
+            }
+            
+            .sidebar.active {
+                width: 250px;
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 15px;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            #map {
+                height: 400px;
+            }
+
+            .info-panel {
+                position: relative;
+                top: auto;
+                right: auto;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            .legend {
+                bottom: 10px;
+                left: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (min-width: 993px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #map {
+                height: 350px;
+            }
+
+            .controls-card {
+                padding: 15px;
+            }
+
+            .legend {
+                padding: 10px;
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            
+            .user-email {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 10px;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            .legend {
+                display: none;
+            }
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* Loading Spinner */
+        .spinner-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1001;
+            border-radius: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner-overlay.active {
+            display: flex;
+        }
+
+        /* District Search */
+        .district-search-container {
+            position: relative;
+        }
+
+        .district-search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1002;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Toast Notification */
+        .toast {
+            visibility: hidden;
+            min-width: 280px;
+            background-color: #323232;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 14px;
+            position: fixed;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 16px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Feedback Modal Customization */
+        .feedback-modal .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), #0d47a1);
+            color: white;
+        }
+
+        .feedback-modal .modal-title i {
+            color: #ffdd40;
+        }
+    </style>
 </head>
-
 <body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style="height: var(--header-height);">
+        <div class="container-fluid">
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Brand -->
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-geo-alt-fill"></i>
+                Tamil Nadu Disease Map
+            </a>
+            
+            <!-- User Profile -->
+            <div class="d-flex align-items-center">
+                <div class="user-profile d-flex align-items-center px-3 py-2" onclick="showEmail()" id="userProfile">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" class="user-avatar me-2">
+                    <div class="d-none d-md-block">
+                        <div class="fw-bold" id="userEmail"></div>
+                        <small class="text-muted">Map Viewer</small>
+                    </div>
+                    <i class="bi bi-chevron-down ms-2 d-none d-md-block"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-<!-- HEADER -->
-<div class="header">
-  Infectious Disease Predictor – Tamil Nadu
-</div>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- LAYOUT WRAPPER -->
-<div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-3">
+            <div class="text-center mb-4 d-block d-lg-none">
+                <button class="btn btn-light btn-sm" id="closeSidebar">
+                    <i class="bi bi-x-lg"></i> Close Menu
+                </button>
+            </div>
+            
+            <a href="dashboard.html">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="map.html" class="active">
+                <i class="bi bi-map"></i> Tamil Nadu Map
+            </a>
+            <a href="prediction.html">
+                <i class="bi bi-graph-up"></i> Prediction
+            </a>
+            <a href="report.html">
+                <i class="bi bi-file-earmark-text"></i> Reports
+            </a>
+            <hr class="bg-light mx-3">
+            <a href="#" onclick="openFeedback()">
+                <i class="bi bi-chat-left-text"></i> Feedback
+            </a>
+            <a href="#" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <a href="dashboard.html">Dashboard</a>
-    <a href="map.html">Tamil Nadu Map</a>
-    <a href="prediction.html">Prediction</a>
-    <a href="report.html">Reports</a>
-    <a href="index.html">Logout</a>
-  </div>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Title -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Tamil Nadu District Disease Map</h2>
+                <p class="text-muted mb-0">Interactive visualization of disease risk across all 38 districts</p>
+            </div>
+            <div class="d-none d-md-block">
+                <span class="badge bg-primary">Live Data</span>
+                <span class="badge bg-success ms-2">Real-time Updates</span>
+            </div>
+        </div>
 
-  <!-- PAGE CONTENT -->
-  <div class="content">
-    <h2>Tamil Nadu District Disease Map</h2>
-    <div id="map"></div>
-  </div>
+        <!-- Controls Card -->
+        <div class="controls-card">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="mb-3"><i class="bi bi-search me-2"></i>Select a District</h5>
+                    <div class="district-search-container">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <select id="districtSelect" class="form-select">
+                                <option value="">-- Select District --</option>
+                                <!-- Districts will be populated dynamically -->
+                            </select>
+                            <button class="btn btn-primary" type="button" onclick="goToDistrict()">
+                                <i class="bi bi-eye"></i> Show
+                            </button>
+                        </div>
+                        <div class="district-search-results" id="searchResults"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Map Legend</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge rounded-pill bg-success">Low Risk</span>
+                        <span class="badge rounded-pill bg-warning text-dark">Medium Risk</span>
+                        <span class="badge rounded-pill bg-danger">High Risk</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-</div>
+        <!-- Map Container -->
+        <div class="position-relative">
+            <div id="map"></div>
+            <div class="spinner-overlay" id="mapSpinner">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading district data...</p>
+                </div>
+            </div>
 
-<!-- FOOTER -->
-<div class="footer">
-  © 2025 Infectious Disease Outbreak Predictor
-</div>
+            <!-- Legend -->
+            <div class="legend d-none d-md-block">
+                <h6><i class="bi bi-legend me-2"></i>Risk Level</h6>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--low-risk);"></div>
+                    <span>Low Risk</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--medium-risk);"></div>
+                    <span>Medium Risk</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--high-risk);"></div>
+                    <span>High Risk</span>
+                </div>
+            </div>
+        </div>
 
-<script>
-var map = L.map('map').setView([10.8, 78.6], 7);
+        <!-- Info Panel (hidden by default) -->
+        <div class="info-panel" id="infoPanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0" id="panelDistrictName">District Info</h5>
+                <button type="button" class="btn-close" onclick="closeInfoPanel()"></button>
+            </div>
+            <div id="panelContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18
-}).addTo(map);
+        <!-- Statistics Row -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="text-primary" id="totalDistricts">38</h3>
+                        <p class="text-muted mb-0">Total Districts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="text-success" id="lowRiskCount">0</h3>
+                        <p class="text-muted mb-0">Low Risk Districts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="text-warning" id="mediumRiskCount">0</h3>
+                        <p class="text-muted mb-0">Medium Risk Districts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="text-danger" id="highRiskCount">0</h3>
+                        <p class="text-muted mb-0">High Risk Districts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-fetch("maps/tamilnadu.geojson")
-.then(res => res.json())
-.then(data => {
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-0">© 2025 Infectious Disease Predictor – All rights reserved.</p>
+            <p class="text-light small mt-2">Interactive disease risk mapping for Tamil Nadu districts</p>
+        </div>
+    </footer>
 
-    L.geoJSON(data, {
-        onEachFeature: function(feature, layer) {
+    <!-- Feedback Modal -->
+    <div class="modal fade feedback-modal" id="feedbackModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-chat-left-text me-2"></i>Submit Feedback</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="fb_email" class="form-label">Your Email</label>
+                        <input type="email" class="form-control" id="fb_email" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fb_text" class="form-label">Your Feedback</label>
+                        <textarea class="form-control" id="fb_text" rows="4" placeholder="Please share your thoughts, suggestions, or issues..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            const district = feature.properties.dtname;
-            console.log("Extracted district:", district);
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Feedback submitted successfully!</div>
 
-            layer.on("click", function(){
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-                fetch("http://127.0.0.1:5000/getDistrictData", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ district: district })
+    <script>
+        // Initialize variables
+        let map;
+        let districtLayers = {};
+        let districtData = {};
+        let riskCounts = { low: 0, medium: 0, high: 0 };
+
+        // Page load function
+        window.onload = function() {
+            // Check login
+            let logged = localStorage.getItem("loggedIn");
+            if (logged !== "true") {
+                window.location.href = "index.html";
+                return;
+            }
+
+            // Set user email
+            document.getElementById("userEmail").innerText = localStorage.getItem("email");
+            document.getElementById("fb_email").value = localStorage.getItem("email");
+
+            // Initialize map
+            initMap();
+
+            // Populate district dropdown
+            populateDistrictDropdown();
+
+            // Setup mobile menu
+            setupMobileMenu();
+        };
+
+        // Initialize the map
+        function initMap() {
+            // Center on Tamil Nadu
+            map = L.map('map').setView([10.8, 78.6], 7);
+
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            // Show loading spinner
+            document.getElementById('mapSpinner').classList.add('active');
+
+            // Load GeoJSON data
+            fetch("maps/tamilnadu.geojson")
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load map data');
+                    return res.json();
                 })
-                .then(res => res.json())
-                .then(info => {
+                .then(data => {
+                    // Process and add districts to map
+                    L.geoJSON(data, {
+                        style: getDistrictStyle,
+                        onEachFeature: onEachDistrictFeature
+                    }).addTo(map);
 
-                    let historyHtml = "";
-                    info.history.forEach(row => {
-                        historyHtml += `${row.year}: ${row.cases} cases<br>`;
-                    });
-
-                    layer.bindPopup(`
-                        <b>${district}</b><br>
-                        Temperature: ${info.temperature}<br>
-                        Humidity: ${info.humidity}<br>
-                        Rainfall: ${info.rainfall}<br>
-                        <b>Risk Level: ${info.risk}</b><br><br>
-
-                        <b>Past Disease Data (2000–2025)</b><br>
-                        <div style="max-height:120px; overflow-y:auto; border:1px solid #ccc; padding:5px;">
-                            ${historyHtml}
-                        </div><br>
-
-                        <a href="prediction.html?district=${district}&temp=${info.temperature}&hum=${info.humidity}&rain=${info.rainfall}&risk=${info.risk}">
-                            Go to Prediction Page
-                        </a>
-                    `).openPopup();
+                    // Hide loading spinner
+                    document.getElementById('mapSpinner').classList.remove('active');
+                })
+                .catch(error => {
+                    console.error('Error loading GeoJSON:', error);
+                    document.getElementById('mapSpinner').classList.remove('active');
+                    alert('Failed to load map data. Please check if the GeoJSON file exists.');
                 });
+        }
+
+        // Get style for districts based on risk level
+        function getDistrictStyle(feature) {
+            const risk = districtData[feature.properties.dtname]?.risk || 'medium';
+            
+            let color;
+            switch(risk.toLowerCase()) {
+                case 'high':
+                    color = '#F44336';
+                    break;
+                case 'medium':
+                    color = '#FFC107';
+                    break;
+                case 'low':
+                default:
+                    color = '#4CAF50';
+                    break;
+            }
+
+            return {
+                fillColor: color,
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        }
+
+        // Process each district feature
+        function onEachDistrictFeature(feature, layer) {
+            const district = feature.properties.dtname;
+            const districtKey = district.toLowerCase();
+            
+            // Store layer reference
+            districtLayers[districtKey] = layer;
+            
+            // Fetch district data from API
+            fetchDistrictData(district).then(data => {
+                districtData[district] = data;
+                
+                // Update risk counts
+                if (data.risk) {
+                    const risk = data.risk.toLowerCase();
+                    if (riskCounts[risk] !== undefined) {
+                        riskCounts[risk]++;
+                        updateRiskCounts();
+                    }
+                }
+                
+                // Update layer style based on risk
+                layer.setStyle(getDistrictStyle(feature));
+            }).catch(error => {
+                console.error(`Error fetching data for ${district}:`, error);
+            });
+            
+            // Add click event
+            layer.on('click', function() {
+                showDistrictInfo(district);
+            });
+            
+            // Add hover effects
+            layer.on('mouseover', function() {
+                layer.setStyle({
+                    weight: 3,
+                    color: '#666',
+                    dashArray: '',
+                    fillOpacity: 0.9
+                });
+                layer.bringToFront();
+            });
+            
+            layer.on('mouseout', function() {
+                layer.setStyle(getDistrictStyle(feature));
+            });
+            
+            // Bind tooltip
+            layer.bindTooltip(district, {
+                direction: 'auto',
+                sticky: true
+            });
+        }
+
+        // Fetch district data from API
+        function fetchDistrictData(district) {
+            return fetch("http://127.0.0.1:5000/getDistrictData", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ district: district })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            });
+        }
+
+        // Populate district dropdown
+        function populateDistrictDropdown() {
+            const districts = [
+                "Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore",
+                "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kancheepuram",
+                "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam",
+                "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram",
+                "Ranipet", "Salem", "Sivagangai", "Tenkasi", "Thanjavur",
+                "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur",
+                "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore",
+                "Viluppuram", "Virudhunagar"
+            ];
+            
+            const select = document.getElementById('districtSelect');
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                select.appendChild(option);
+            });
+        }
+
+        // Show district information
+        function showDistrictInfo(district) {
+            const data = districtData[district];
+            if (!data) {
+                alert(`Data not available for ${district}. Please try again.`);
+                return;
+            }
+            
+            // Zoom to district
+            const layer = districtLayers[district.toLowerCase()];
+            if (layer) {
+                map.fitBounds(layer.getBounds(), {
+                    animate: true,
+                    padding: [50, 50],
+                    maxZoom: 10
+                });
+            }
+            
+            // Open popup with detailed information
+            const historyHtml = data.history ? 
+                data.history.map(row => 
+                    `<div class="history-item">
+                        <strong>${row.year}</strong> - ${row.disease_name}: ${row.cases} cases
+                    </div>`
+                ).join('') : '<p>No historical data available</p>';
+            
+            const riskClass = `risk-${data.risk?.toLowerCase() || 'medium'}`;
+            
+            const popupContent = `
+                <h4>${district}</h4>
+                <div class="popup-data">
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Current Disease:</span>
+                        <span class="popup-data-value">${data.disease || 'N/A'}</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Risk Level:</span>
+                        <span class="popup-data-value ${riskClass}">${data.risk || 'Medium'}</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Temperature:</span>
+                        <span class="popup-data-value">${data.temperature || 'N/A'}°C</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Humidity:</span>
+                        <span class="popup-data-value">${data.humidity || 'N/A'}%</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Rainfall:</span>
+                        <span class="popup-data-value">${data.rainfall || 'N/A'} mm</span>
+                    </div>
+                </div>
+                
+                <h5>Historical Data</h5>
+                <div class="history-scroll">
+                    ${historyHtml}
+                </div>
+                
+                <div class="mt-3">
+                    <a href="prediction.html?district=${encodeURIComponent(district)}&temp=${data.temperature || ''}&hum=${data.humidity || ''}&rain=${data.rainfall || ''}&risk=${data.risk || ''}&disease=${data.disease || ''}" 
+                       class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-graph-up me-1"></i> View Predictions
+                    </a>
+                </div>
+            `;
+            
+            if (layer) {
+                layer.bindPopup(popupContent, {
+                    maxWidth: 350,
+                    className: 'custom-popup'
+                }).openPopup();
+            }
+            
+            // Also show in info panel on desktop
+            if (window.innerWidth >= 992) {
+                showInfoPanel(district, data);
+            }
+        }
+
+        // Show info panel
+        function showInfoPanel(district, data) {
+            const panel = document.getElementById('infoPanel');
+            const panelDistrictName = document.getElementById('panelDistrictName');
+            const panelContent = document.getElementById('panelContent');
+            
+            panelDistrictName.textContent = district;
+            
+            const historyHtml = data.history ? 
+                data.history.slice(0, 5).map(row => 
+                    `<div class="history-item">
+                        <strong>${row.year}</strong> - ${row.disease_name}: ${row.cases} cases
+                    </div>`
+                ).join('') : '<p>No historical data available</p>';
+            
+            const riskClass = `risk-${data.risk?.toLowerCase() || 'medium'}`;
+            
+            panelContent.innerHTML = `
+                <div class="popup-data">
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Current Disease:</span>
+                        <span class="popup-data-value">${data.disease || 'N/A'}</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Risk Level:</span>
+                        <span class="popup-data-value ${riskClass}">${data.risk || 'Medium'}</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Temperature:</span>
+                        <span class="popup-data-value">${data.temperature || 'N/A'}°C</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Humidity:</span>
+                        <span class="popup-data-value">${data.humidity || 'N/A'}%</span>
+                    </div>
+                    <div class="popup-data-row">
+                        <span class="popup-data-label">Rainfall:</span>
+                        <span class="popup-data-value">${data.rainfall || 'N/A'} mm</span>
+                    </div>
+                </div>
+                
+                <h6 class="mt-3">Recent History</h6>
+                <div class="history-scroll">
+                    ${historyHtml}
+                </div>
+                
+                <div class="mt-3">
+                    <a href="prediction.html?district=${encodeURIComponent(district)}&temp=${data.temperature || ''}&hum=${data.humidity || ''}&rain=${data.rainfall || ''}&risk=${data.risk || ''}&disease=${data.disease || ''}" 
+                       class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-graph-up me-1"></i> View Detailed Predictions
+                    </a>
+                </div>
+            `;
+            
+            panel.style.display = 'block';
+        }
+
+        // Close info panel
+        function closeInfoPanel() {
+            document.getElementById('infoPanel').style.display = 'none';
+        }
+
+        // Go to selected district
+        function goToDistrict() {
+            const select = document.getElementById('districtSelect');
+            const district = select.value;
+            
+            if (!district) {
+                alert("Please select a district");
+                return;
+            }
+            
+            showDistrictInfo(district);
+        }
+
+        // Update risk counts display
+        function updateRiskCounts() {
+            document.getElementById('lowRiskCount').textContent = riskCounts.low;
+            document.getElementById('mediumRiskCount').textContent = riskCounts.medium;
+            document.getElementById('highRiskCount').textContent = riskCounts.high;
+        }
+
+        // Mobile menu functions
+        function setupMobileMenu() {
+            document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.add('active');
+                document.getElementById('sidebarOverlay').classList.add('active');
             });
 
-            layer.bindTooltip(district);
+            document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
         }
-    }).addTo(map);
-});
-</script>
 
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // Show email when clicking profile icon
+        function showEmail() {
+            let email = localStorage.getItem("email");
+            alert("Logged in as: " + email);
+        }
+
+        // OPEN FEEDBACK MODAL
+        function openFeedback() {
+            closeSidebar(); // Close sidebar on mobile
+            let feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            feedbackModal.show();
+        }
+
+        // SUBMIT FEEDBACK
+        function submitFeedback() {
+            let email = document.getElementById("fb_email").value;
+            let feedback = document.getElementById("fb_text").value;
+
+            if (feedback.trim() === "") {
+                alert("Please enter your feedback.");
+                return;
+            }
+
+            // Show loading state
+            let submitBtn = document.querySelector('#feedbackModal .btn-primary');
+            let originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+            submitBtn.disabled = true;
+
+            fetch("http://127.0.0.1:5000/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, feedback })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
+            .then(data => {
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                // Close modal and show success message
+                bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+                
+                // Show toast notification
+                showToast('Feedback submitted successfully! Thank you for your input.');
+                
+                // Clear textarea
+                document.getElementById("fb_text").value = "";
+            })
+            .catch(error => {
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                showToast('Failed to submit feedback. Please try again.', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            
+            // Set background color based on type
+            if (type === 'error') {
+                toast.style.backgroundColor = '#f44336';
+            } else {
+                toast.style.backgroundColor = '#4CAF50';
+            }
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                localStorage.clear();
+                window.location.href = "index.html";
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 992) {
+                closeSidebar();
+            }
+        });
+    </script>
 </body>
 </html>

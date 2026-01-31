@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Disease Predictor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --admin-primary: #d32f2f;
+            --admin-secondary: #1a237e;
+            --admin-accent: #ff6b35;
+            --admin-dark: #121212;
+            --admin-light: #f5f5f5;
+            --admin-success: #2e8b57;
+            --admin-warning: #ffa726;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Admin Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--admin-primary), #b71c1c);
+            color: white;
+            height: var(--header-height);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, 
+                var(--admin-accent), 
+                #ff9800, 
+                var(--admin-accent));
+            background-size: 200% 100%;
+            animation: gradientFlow 3s linear infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .admin-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-header .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: adminPulse 3s infinite;
+        }
+
+        @keyframes adminPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+        }
+
+        .admin-header .logo-icon i {
+            font-size: 22px;
+            color: white;
+        }
+
+        .admin-header .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-header .logo small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .admin-header .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .admin-header .admin-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-header .admin-avatar:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .admin-header .admin-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Admin Sidebar */
+        .admin-sidebar {
+            background: linear-gradient(180deg, #121212 0%, #1a1a1a 100%);
+            color: white;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            z-index: 999;
+            overflow-y: auto;
+            transition: all 0.3s;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-sidebar .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .admin-sidebar .sidebar-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--admin-accent);
+            margin-bottom: 5px;
+        }
+
+        .admin-sidebar .sidebar-header p {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .admin-sidebar .nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .admin-sidebar .nav-item {
+            position: relative;
+        }
+
+        .admin-sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            font-weight: 500;
+        }
+
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-left-color: var(--admin-primary);
+            padding-left: 30px;
+        }
+
+        .admin-sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--admin-accent);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .admin-sidebar .nav-link i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .admin-sidebar .nav-link .badge {
+            margin-left: auto;
+            background: var(--admin-primary);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+
+        .admin-sidebar .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Content */
+        .admin-main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 30px;
+            min-height: calc(100vh - var(--header-height));
+            transition: all 0.3s;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: linear-gradient(135deg, var(--admin-secondary), #283593);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(26, 35, 126, 0.3);
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .welcome-section .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            border: 1px solid #eef2f7;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--admin-primary);
+        }
+
+        .stat-card .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .stat-card.users .stat-icon {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--admin-primary);
+        }
+
+        .stat-card.dataset .stat-icon {
+            background: rgba(26, 35, 126, 0.1);
+            color: var(--admin-secondary);
+        }
+
+        .stat-card.accuracy .stat-icon {
+            background: rgba(46, 139, 87, 0.1);
+            color: var(--admin-success);
+        }
+
+        .stat-card.alerts .stat-icon {
+            background: rgba(255, 167, 38, 0.1);
+            color: var(--admin-warning);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-card .stat-change {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .stat-card .stat-change.positive {
+            background: rgba(46, 139, 87, 0.1);
+            color: var(--admin-success);
+        }
+
+        .stat-card .stat-change.negative {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--admin-primary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .quick-actions h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--admin-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-actions .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--admin-primary);
+            background: linear-gradient(135deg, white, #f8f9fa);
+            color: var(--admin-primary);
+        }
+
+        .action-btn i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--admin-secondary);
+        }
+
+        .action-btn:hover i {
+            color: var(--admin-primary);
+            transform: scale(1.1);
+        }
+
+        .action-btn .action-label {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .action-btn .action-desc {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .recent-activity h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--admin-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .activity-item .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .activity-item.add .activity-icon {
+            background: var(--admin-success);
+        }
+
+        .activity-item.update .activity-icon {
+            background: var(--admin-warning);
+        }
+
+        .activity-item.delete .activity-icon {
+            background: var(--admin-primary);
+        }
+
+        .activity-item.view .activity-icon {
+            background: var(--admin-secondary);
+        }
+
+        .activity-item .activity-content {
+            flex: 1;
+        }
+
+        .activity-item .activity-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .activity-item .activity-time {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-container h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--admin-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Footer */
+        .admin-footer {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                left: -100%;
+            }
+            
+            .admin-sidebar.active {
+                left: 0;
+            }
+            
+            .admin-main {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .welcome-section h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 0 15px;
+            }
+            
+            .admin-main {
+                padding: 20px 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .welcome-section {
+                padding: 20px;
+            }
+            
+            .welcome-section h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .admin-header .logo h1 {
+                font-size: 1.2rem;
+            }
+            
+            .admin-header .logo small {
+                font-size: 0.7rem;
+            }
+            
+            .admin-header .admin-info {
+                gap: 10px;
+            }
+        }
+
+        /* Logout Modal */
+        .logout-modal .modal-header {
+            background: linear-gradient(135deg, var(--admin-primary), #b71c1c);
+            color: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--admin-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="bi bi-shield-shaded"></i>
+            </div>
+            <div>
+                <h1>Admin Dashboard</h1>
+                <small>Disease Predictor - System Administration</small>
+            </div>
+        </div>
+        
+        <div class="admin-info">
+            <div class="admin-avatar" data-bs-toggle="modal" data-bs-target="#adminProfileModal">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Admin">
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Admin Sidebar -->
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <h3>Administration Panel</h3>
+            <p>System Management Tools</p>
+        </div>
+        
+        <ul class="nav">
+            <li class="nav-item">
+                <a href="admin_dashboard.html" class="nav-link active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="crud.html" class="nav-link">
+                    <i class="bi bi-database"></i>
+                    <span>Manage Dataset (CRUD)</span>
+                    <span class="badge">38</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="users.html" class="nav-link">
+                    <i class="bi bi-people"></i>
+                    <span>User Management</span>
+                    <span class="badge">12</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reports.html" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>System Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="settings.html" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span>System Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="logs.html" class="nav-link">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Activity Logs</span>
+                    <span class="badge">24</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-outline-light w-100" onclick="confirmLogout()">
+                <i class="bi bi-box-arrow-right me-2"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="content">
+                <h1>Welcome to System Administration</h1>
+                <p>Monitor system performance, manage datasets, and oversee all administrative activities from this centralized dashboard.</p>
+                <div class="mt-4">
+                    <span class="badge bg-warning me-2"><i class="bi bi-shield-check me-1"></i> Secure Session</span>
+                    <span class="badge bg-info"><i class="bi bi-clock me-1"></i> Last Login: 2 minutes ago</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card users">
+                <div class="stat-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">1,248</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> 12% this month
+                </div>
+            </div>
+            
+            <div class="stat-card dataset">
+                <div class="stat-icon">
+                    <i class="bi bi-database"></i>
+                </div>
+                <div class="stat-value">38</div>
+                <div class="stat-label">Active Datasets</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> 5 updated today
+                </div>
+            </div>
+            
+            <div class="stat-card accuracy">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-value">94.2%</div>
+                <div class="stat-label">Model Accuracy</div>
+                <div class="stat-change positive">
+                    <i class="bi bi-arrow-up"></i> 0.8% improved
+                </div>
+            </div>
+            
+            <div class="stat-card alerts">
+                <div class="stat-icon">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="stat-value">7</div>
+                <div class="stat-label">Pending Alerts</div>
+                <div class="stat-change negative">
+                    <i class="bi bi-arrow-up"></i> 2 new today
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <h3><i class="bi bi-lightning"></i> Quick Actions</h3>
+            <div class="actions-grid">
+                <a href="crud.html" class="action-btn">
+                    <i class="bi bi-plus-circle"></i>
+                    <div class="action-label">Add New Data</div>
+                    <div class="action-desc">Create new disease prediction records</div>
+                </a>
+                
+                <a href="import.html" class="action-btn">
+                    <i class="bi bi-upload"></i>
+                    <div class="action-label">Import Dataset</div>
+                    <div class="action-desc">Upload CSV or Excel files</div>
+                </a>
+                
+                <a href="export.html" class="action-btn">
+                    <i class="bi bi-download"></i>
+                    <div class="action-label">Export Reports</div>
+                    <div class="action-desc">Generate system analytics reports</div>
+                </a>
+                
+                <a href="backup.html" class="action-btn">
+                    <i class="bi bi-hdd"></i>
+                    <div class="action-label">Backup System</div>
+                    <div class="action-desc">Create system backup</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+            <h3><i class="bi bi-clock-history"></i> Recent Activity</h3>
+            <div class="activity-list">
+                <div class="activity-item add">
+                    <div class="activity-icon">
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">New Dataset Added</div>
+                        <div class="activity-desc">Added Chennai district 2024 data</div>
+                        <div class="activity-time">Just now</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item update">
+                    <div class="activity-icon">
+                        <i class="bi bi-pencil"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Dataset Updated</div>
+                        <div class="activity-desc">Updated Coimbatore rainfall data</div>
+                        <div class="activity-time">10 minutes ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item view">
+                    <div class="activity-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">User Access</div>
+                        <div class="activity-desc">User "john_doe" viewed predictions</div>
+                        <div class="activity-time">25 minutes ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item delete">
+                    <div class="activity-icon">
+                        <i class="bi bi-trash"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Old Data Cleaned</div>
+                        <div class="activity-desc">Removed 2000-2005 outdated records</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item add">
+                    <div class="activity-icon">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">New User Registered</div>
+                        <div class="activity-desc">Researcher account created</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Usage Chart -->
+        <section class="chart-container">
+            <h3><i class="bi bi-graph-up"></i> System Usage Overview</h3>
+            <canvas id="usageChart"></canvas>
+        </section>
+
+        <!-- Footer -->
+        <footer class="admin-footer">
+            <p>© 2025 Infectious Disease Predictor - Administrative System</p>
+            <p class="mt-2"><small><i class="bi bi-shield-lock"></i> All activities are monitored and logged for security purposes</small></p>
+        </footer>
+    </main>
+
+    <!-- Logout Modal -->
+    <div class="modal fade logout-modal" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-box-arrow-right me-2"></i>Confirm Logout</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to logout from the admin panel?</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        All unsaved changes will be lost.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Profile Modal -->
+    <div class="modal fade" id="adminProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-circle me-2"></i>Admin Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                             alt="Admin" 
+                             class="rounded-circle"
+                             style="width: 100px; height: 100px; border: 4px solid var(--admin-primary);">
+                        <h4 class="mt-3">System Administrator</h4>
+                        <p class="text-muted">Full System Access</p>
+                    </div>
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <i class="bi bi-envelope me-2"></i>
+                            <strong>Email:</strong> admin@diseasepredictor.com
+                        </div>
+                        <div class="list-group-item">
+                            <i class="bi bi-calendar me-2"></i>
+                            <strong>Last Login:</strong> Just now
+                        </div>
+                        <div class="list-group-item">
+                            <i class="bi bi-shield-check me-2"></i>
+                            <strong>Role:</strong> Super Administrator
+                        </div>
+                        <div class="list-group-item">
+                            <i class="bi bi-clock-history me-2"></i>
+                            <strong>Session Duration:</strong> 2 minutes
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize Chart
+        function initializeChart() {
+            const ctx = document.getElementById('usageChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'System Usage',
+                        data: [65, 78, 82, 79, 85, 90],
+                        borderColor: 'var(--admin-primary)',
+                        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.getElementById('adminMain');
+            
+            sidebar.classList.toggle('active');
+            
+            // Close sidebar when clicking outside on mobile
+            if (sidebar.classList.contains('active')) {
+                document.addEventListener('click', closeMenuOnClickOutside);
+            } else {
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        function closeMenuOnClickOutside(event) {
+            const sidebar = document.getElementById('adminSidebar');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            
+            if (!sidebar.contains(event.target) && !mobileBtn.contains(event.target)) {
+                sidebar.classList.remove('active');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        // Confirm logout
+        function confirmLogout() {
+            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            logoutModal.show();
+        }
+
+        // Logout function
+        function logout() {
+            // Clear admin session
+            localStorage.removeItem('adminLoggedIn');
+            
+            // Show loading state
+            const logoutBtn = document.querySelector('#logoutModal .btn-danger');
+            const originalText = logoutBtn.innerHTML;
+            logoutBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging out...';
+            logoutBtn.disabled = true;
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = 'admin_login.html';
+            }, 1000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize chart
+            initializeChart();
+            
+            // Mobile menu toggle
+            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+            
+            // Auto-refresh stats every 30 seconds
+            setInterval(() => {
+                // In a real app, this would fetch updated stats from API
+                console.log('Stats refreshed');
+            }, 30000);
+            
+            // Check if admin is logged in
+            if (!localStorage.getItem('adminLoggedIn')) {
+                window.location.href = 'admin_login.html';
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 992) {
+                document.getElementById('adminSidebar').classList.remove('active');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        });
+    </script>
+</body>
+</html>
