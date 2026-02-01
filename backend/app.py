@@ -20,48 +20,221 @@ CORS(app)
 def init_db():
     conn = sqlite3.connect("database.sqlite")
     cur = conn.cursor()
-    
-    # Users table
+
+    print("Checking and updating database schema...")
+
+    # --------------------------------------------------
+    # 1. USERS TABLE – Add missing columns INDIVIDUALLY
+    # --------------------------------------------------
+    cur.execute("PRAGMA table_info(users)")
+    user_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current users columns: {user_columns}")
+
+    user_required = {
+        "role": "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'",
+        "created_at": "ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "last_login": "ALTER TABLE users ADD COLUMN last_login TIMESTAMP",
+        "status": "ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'",
+        "login_count": "ALTER TABLE users ADD COLUMN login_count INTEGER DEFAULT 0"
+    }
+
+    for col, query in user_required.items():
+        if col not in user_columns:
+            try:
+                cur.execute(query)
+                print(f"  Added missing column: {col}")
+            except Exception as e:
+                print(f"  Could not add {col}: {e}")
+
+    # Ensure default values
+    try:
+        cur.execute("UPDATE users SET role='user' WHERE role IS NULL")
+        cur.execute("UPDATE users SET status='active' WHERE status IS NULL")
+    except:
+        pass
+
+    # --------------------------------------------------
+    # 2. FEEDBACK TABLE – Add missing columns
+    # --------------------------------------------------
+    cur.execute("PRAGMA table_info(feedback)")
+    feedback_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current feedback columns: {feedback_columns}")
+
+    feedback_required = {
+        "name": "ALTER TABLE feedback ADD COLUMN name TEXT",
+        "priority": "ALTER TABLE feedback ADD COLUMN priority TEXT DEFAULT 'normal'"
+    }
+
+    for col, query in feedback_required.items():
+        if col not in feedback_columns:
+            try:
+                cur.execute(query)
+                print(f"  Added missing column: {col}")
+            except Exception as e:
+                print(f"  Could not add {col}: {e}")
+
+    # Auto-fill missing names
+    try:
+        cur.execute("""
+            UPDATE feedback 
+            SET name = SUBSTR(email, 1, INSTR(email, '@') - 1)
+            WHERE name IS NULL OR name = ''
+        """)
+    except:
+        pass
+
+    # --------------------------------------------------
+    # 3. SYSTEM_LOGS TABLE – Add missing columns
+    # --------------------------------------------------
+    cur.execute("PRAGMA table_info(system_logs)")
+    log_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current system_logs columns: {log_columns}")
+
+    if "ip_address" not in log_columns:
+        try:
+            cur.execute("ALTER TABLE system_logs ADD COLUMN ip_address TEXT")
+            print("  Added missing column: ip_address")
+        except Exception as e:
+            print(f"  Could not add ip_address: {e}")
+
+    # --------------------------------------------------
+    # 4. CREATE system_settings TABLE (safe)
+    # --------------------------------------------------
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS system_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT,
-            role TEXT DEFAULT 'user',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_login TIMESTAMP,
-            status TEXT DEFAULT 'active',
-            login_count INTEGER DEFAULT 0
+            setting_key TEXT UNIQUE,
+            setting_value TEXT,
+            description TEXT,
+            category TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Insert default settings
+    default_settings = [
+        ('system_name', 'Disease Predictor', 'Application Name', 'general'),
+        ('model_accuracy_threshold', '85', 'Minimum accuracy percentage', 'model'),
+        ('data_update_frequency', 'daily', 'How often data is updated', 'data'),
+        ('max_login_attempts', '5', 'Maximum failed login attempts', 'security'),
+        ('session_timeout', '30', 'Session timeout in minutes', 'security'),
+        ('email_notifications', 'true', 'Enable email notifications', 'notifications'),
+        ('maintenance_mode', 'false', 'Put system in maintenance mode', 'system'),
+        ('backup_frequency', 'weekly', 'How often to backup data', 'system'),
+        ('max_users', '1000', 'Maximum number of users', 'limits'),
+        ('data_retention_days', '365', 'Days to keep historical data', 'data')
+    ]
+
+    for key, value, desc, category in default_settings:
+        cur.execute("""
+            INSERT OR REPLACE INTO system_settings (setting_key, setting_value, description, category)
+            VALUES (?, ?, ?, ?)
+        """, (key, value, desc, category))
+
+    # --------------------------------------------------
+    # 5. Create admin user if not exists
+    # --------------------------------------------------
+    cur.execute("SELECT * FROM users WHERE email='admin@system.com'")
+    if not cur.fetchone():
+        cur.execute("""
+            INSERT INTO users (name, email, password, role, status)
+            VALUES (?, ?, ?, ?, ?)
+        """, ('System Admin', 'admin@system.com', 'admin123', 'admin', 'active'))
+        print("Created admin user: admin@system.com / admin123")
+
+    # Promote your admin
+    cur.execute("UPDATE users SET role='admin', name='Deepak Admin' WHERE email='admin@ztorespot.com'")
+
+    conn.commit()
+    conn.close()
+    print("Database initialization completed successfully!")
+    conn = sqlite3.connect("database.sqlite")
+    cur = conn.cursor()
     
-    # Feedback table
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT,
-            name TEXT,
-            feedback TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'unread',
-            priority TEXT DEFAULT 'normal'
-        )
-    """)
+    print("Checking and updating database schema...")
     
-    # System logs table
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS system_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            action TEXT,
-            user_email TEXT,
-            details TEXT,
-            ip_address TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    # 1. USERS TABLE - Check and update
+    cur.execute("PRAGMA table_info(users)")
+    user_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current users columns: {user_columns}")
     
-    # System settings table
+    if 'role' not in user_columns:
+        print("Updating users table schema...")
+        # Add missing columns to users table
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+            print("  Added 'role' column")
+        except:
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            print("  Added 'created_at' column")
+        except:
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP")
+            print("  Added 'last_login' column")
+        except:
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'")
+            print("  Added 'status' column")
+        except:
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN login_count INTEGER DEFAULT 0")
+            print("  Added 'login_count' column")
+        except:
+            pass
+        
+        # Update existing users to have default values
+        cur.execute("UPDATE users SET role='user' WHERE role IS NULL")
+        cur.execute("UPDATE users SET status='active' WHERE status IS NULL")
+    
+    # 2. FEEDBACK TABLE - Check and update
+    cur.execute("PRAGMA table_info(feedback)")
+    feedback_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current feedback columns: {feedback_columns}")
+    
+    if 'name' not in feedback_columns:
+        print("Updating feedback table schema...")
+        try:
+            cur.execute("ALTER TABLE feedback ADD COLUMN name TEXT")
+            print("  Added 'name' column")
+        except:
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE feedback ADD COLUMN priority TEXT DEFAULT 'normal'")
+            print("  Added 'priority' column")
+        except:
+            pass
+        
+        # Update existing feedback entries
+        cur.execute("""
+            UPDATE feedback 
+            SET name = SUBSTR(email, 1, INSTR(email, '@') - 1)
+            WHERE name IS NULL
+        """)
+    
+    # 3. SYSTEM_LOGS TABLE - Check and update
+    cur.execute("PRAGMA table_info(system_logs)")
+    log_columns = {col[1] for col in cur.fetchall()}
+    print(f"Current system_logs columns: {log_columns}")
+    
+    if 'ip_address' not in log_columns:
+        print("Updating system_logs table schema...")
+        try:
+            cur.execute("ALTER TABLE system_logs ADD COLUMN ip_address TEXT")
+            print("  Added 'ip_address' column")
+        except:
+            pass
+    
+    # 4. Create system_settings table if not exists (it already has the right schema)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS system_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,7 +262,7 @@ def init_db():
     
     for key, value, desc, category in default_settings:
         cur.execute("""
-            INSERT OR IGNORE INTO system_settings (setting_key, setting_value, description, category) 
+            INSERT OR REPLACE INTO system_settings (setting_key, setting_value, description, category) 
             VALUES (?, ?, ?, ?)
         """, (key, value, desc, category))
     
@@ -100,8 +273,12 @@ def init_db():
             INSERT INTO users (name, email, password, role, status) 
             VALUES (?, ?, ?, ?, ?)
         """, ('System Admin', 'admin@system.com', 'admin123', 'admin', 'active'))
+        print("Created admin user: admin@system.com / admin123")
     
-    # Create some sample users
+    # Update existing admin@ztorespot.com to be admin
+    cur.execute("UPDATE users SET role='admin', name='Deepak Admin' WHERE email='admin@ztorespot.com'")
+    
+    # Create some sample users if they don't exist
     sample_users = [
         ('John Doe', 'john@example.com', 'password123', 'user'),
         ('Jane Smith', 'jane@example.com', 'password123', 'user'),
@@ -117,43 +294,49 @@ def init_db():
                 VALUES (?, ?, ?, ?)
             """, (name, email, password, role))
     
-    # Create some sample feedback
-    sample_feedback = [
-        ('john@example.com', 'John Doe', 'Great system! Very useful for our research.', 'read'),
-        ('jane@example.com', 'Jane Smith', 'The prediction accuracy seems good. Can we get more districts?', 'unread'),
-        ('research@example.com', 'Research Team', 'Need API access for bulk data processing.', 'pending'),
-        ('health@example.com', 'Health Dept', 'Emergency: Need immediate risk assessment for Chennai.', 'unread'),
-    ]
+    # Create some sample feedback if table is empty
+    cur.execute("SELECT COUNT(*) FROM feedback")
+    feedback_count = cur.fetchone()[0]
     
-    for email, name, feedback_text, status in sample_feedback:
-        cur.execute("INSERT OR IGNORE INTO feedback (email, name, feedback, status) VALUES (?, ?, ?, ?)",
-                   (email, name, feedback_text, status))
+    if feedback_count < 2:
+        sample_feedback = [
+            ('john@example.com', 'John Doe', 'Great system! Very useful for our research.', 'read'),
+            ('jane@example.com', 'Jane Smith', 'The prediction accuracy seems good. Can we get more districts?', 'unread'),
+            ('research@example.com', 'Research Team', 'Need API access for bulk data processing.', 'pending'),
+            ('health@example.com', 'Health Dept', 'Emergency: Need immediate risk assessment for Chennai.', 'unread'),
+        ]
+        
+        for email, name, feedback_text, status in sample_feedback:
+            cur.execute("""
+                INSERT OR IGNORE INTO feedback (email, name, feedback, status) 
+                VALUES (?, ?, ?, ?)
+            """, (email, name, feedback_text, status))
     
-    # Create some sample logs
-    sample_logs = [
-        ('user_login', 'admin@system.com', 'Admin logged in from IP 192.168.1.1', '192.168.1.1'),
-        ('user_registered', 'john@example.com', 'New user registered', '192.168.1.2'),
-        ('feedback_submitted', 'jane@example.com', 'User submitted feedback', '192.168.1.3'),
-        ('prediction_made', 'research@example.com', 'Made disease prediction for Chennai', '192.168.1.4'),
-        ('data_updated', 'admin@system.com', 'Updated district data', '192.168.1.1'),
-        ('user_login', 'john@example.com', 'User logged in', '192.168.1.2'),
-        ('export_data', 'health@example.com', 'Exported district reports', '192.168.1.5'),
-    ]
+    # Create some sample logs if table is empty
+    cur.execute("SELECT COUNT(*) FROM system_logs")
+    logs_count = cur.fetchone()[0]
     
-    for action, email, details, ip in sample_logs:
-        # Set created_at to recent dates
-        days_ago = np.random.randint(0, 7)
-        created_at = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
-        cur.execute("""
-            INSERT INTO system_logs (action, user_email, details, ip_address, created_at) 
-            VALUES (?, ?, ?, ?, ?)
-        """, (action, email, details, ip, created_at))
+    if logs_count < 5:
+        sample_logs = [
+            ('user_login', 'admin@system.com', 'Admin logged in from IP 192.168.1.1', '192.168.1.1'),
+            ('user_registered', 'deepakchitravel@gmail.com', 'New user registered', '192.168.1.2'),
+            ('feedback_submitted', 'john@example.com', 'User submitted feedback', '192.168.1.3'),
+            ('prediction_made', 'research@example.com', 'Made disease prediction for Chennai', '192.168.1.4'),
+            ('data_updated', 'admin@system.com', 'Updated district data', '192.168.1.1'),
+        ]
+        
+        for action, email, details, ip in sample_logs:
+            # Set created_at to recent dates
+            days_ago = np.random.randint(0, 7)
+            created_at = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
+            cur.execute("""
+                INSERT INTO system_logs (action, user_email, details, ip_address, created_at) 
+                VALUES (?, ?, ?, ?, ?)
+            """, (action, email, details, ip, created_at))
     
     conn.commit()
     conn.close()
-
-init_db()
-
+    print("Database initialization completed successfully!")
 # -------------------------
 # LOAD ML MODEL
 # -------------------------
@@ -219,22 +402,34 @@ def log_action(action, user_email, details):
 def register():
     data = request.json
 
-    name = data["name"]
-    email = data["email"]
-    password = data["password"]
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+    password = data.get("password", "").strip()
+
+    if not name or not email or not password:
+        return jsonify({"status": "error", "message": "All fields are required"})
 
     conn = sqlite3.connect("database.sqlite")
     cur = conn.cursor()
 
     try:
-        cur.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                    (name, email, password))
+        cur.execute("""
+            INSERT INTO users (name, email, password, role, status, login_count)
+            VALUES (?, ?, ?, 'user', 'active', 0)
+        """, (name, email, password))
+
         conn.commit()
-        
+
         log_action('user_registered', email, 'New user registered')
+
         return jsonify({"status": "success", "message": "User registered!"})
+
     except Exception as e:
+        print("REGISTER ERROR:", e)
         return jsonify({"status": "error", "message": str(e)})
+
+    finally:
+        conn.close()
 
 # -------------------------
 # LOGIN API
@@ -291,15 +486,25 @@ def feedback():
         cur.execute("SELECT name FROM users WHERE email=?", (email,))
         user = cur.fetchone()
         name = user[0] if user else email.split('@')[0]
-        
-        cur.execute("INSERT INTO feedback (email, name, feedback) VALUES (?, ?, ?)", 
-                   (email, name, feedback_text))
+
+        # FIXED INSERT: add status + priority explicitly
+        cur.execute("""
+            INSERT INTO feedback (email, name, feedback, status, priority)
+            VALUES (?, ?, ?, 'unread', 'normal')
+        """, (email, name, feedback_text))
+
         conn.commit()
-        
+
         log_action('feedback_submitted', email, 'User submitted feedback')
+
         return jsonify({"status": "success", "message": "Feedback saved successfully"})
+
     except Exception as e:
+        print("FEEDBACK ERROR:", e)  # Debug help
         return jsonify({"status": "error", "message": str(e)})
+
+    finally:
+        conn.close()
 
 # -------------------------
 # PREDICTION API
@@ -890,8 +1095,36 @@ def health_check():
 # RUN SERVER
 # -------------------------
 if __name__ == "__main__":
-    print("Initializing database...")
-    init_db()
-    print("Starting Flask server on http://127.0.0.1:5000")
-    print("Admin credentials: admin@system.com / admin123")
+    print("\n" + "="*60)
+    print("INFECTIOUS DISEASE PREDICTION SYSTEM")
+    print("="*60)
+    
+    print("\n📊 DATABASE INITIALIZATION")
+    print("-" * 40)
+    
+    try:
+        init_db()
+        print("✅ Database initialized successfully!")
+    except Exception as e:
+        print(f"❌ Database initialization failed: {e}")
+        print("\n⚠️  If you continue to have issues:")
+        print("1. Close all Python processes")
+        print("2. Delete the 'database.sqlite' file")
+        print("3. Restart the application")
+    
+    print("\n🤖 ML MODEL STATUS")
+    print("-" * 40)
+    print("Model loaded (scikit-learn version warning is normal)")
+    
+    print("\n🌐 SERVER STARTING")
+    print("-" * 40)
+    print("Server URL: http://127.0.0.1:5000")
+    print("\n🔐 ADMIN CREDENTIALS")
+    print("Email: admin@system.com")
+    print("Password: admin123")
+    print("\n👤 EXISTING USER (from your database)")
+    print("Email: deepakchitravel@gmail.com")
+    print("Password: 123")
+    print("\n" + "="*60)
+    
     app.run(port=5000, debug=True, host='0.0.0.0')

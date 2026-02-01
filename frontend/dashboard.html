@@ -597,38 +597,45 @@
             let originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
             submitBtn.disabled = true;
+fetch("http://127.0.0.1:5000/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, feedback })
+})
+.then(async res => {
+    const data = await res.json();
 
-            fetch("http://127.0.0.1:5000/feedback", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, feedback })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Network response was not ok');
-                return res.json();
-            })
-            .then(data => {
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                // Close modal and show success message
-                bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
-                
-                // Show success alert
-                showAlert('success', 'Feedback submitted successfully! Thank you for your input.');
-                
-                // Clear textarea
-                document.getElementById("fb_text").value = "";
-            })
-            .catch(error => {
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                showAlert('danger', 'Failed to submit feedback. Please try again.');
-                console.error('Error:', error);
-            });
+    // CHECK BACKEND ERROR here
+    if (data.status !== "success") {
+        throw new Error(data.message || "Unknown backend error");
+    }
+
+    return data;
+})
+.then(data => {
+    // Reset button
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+
+    // Success message
+    showAlert('success', 'Feedback submitted successfully! Thank you.');
+
+    // Clear textarea
+    document.getElementById("fb_text").value = "";
+})
+.catch(error => {
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+
+    // Show actual backend message
+    showAlert('danger', "Failed: " + error.message);
+
+    console.error("FEEDBACK ERROR:", error.message);
+});
+
         }
 
         // Show alert function

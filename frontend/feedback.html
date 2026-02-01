@@ -1037,11 +1037,13 @@
                     // Load sample data for demo
                     loadSampleFeedback();
                 }
-            } catch (error) {
-                showError('Error loading feedback: ' + error.message);
-                // Load sample data for demo
-                loadSampleFeedback();
-            } finally {
+         } catch (error) {
+    console.error("FEEDBACK LOAD ERROR:", error);
+    showError("Unable to load feedback from server");
+       allFeedback = [];
+    renderFeedback();
+}
+ finally {
                 showLoading(false);
             }
         }
